@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}{{ profile.name }} | Profile{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="container hero-inner">
+    <div>
+      <p class="eyebrow">Student / New Grad</p>
+      <h1>{{ profile.name }}</h1>
+      <h2>{{ profile.title }}</h2>
+      <p class="location">{{ profile.location }}</p>
+      <div class="cta-row">
+        <a class="button primary" href="mailto:{{ profile.email }}">Email</a>
+        <a class="button secondary" href="{{ profile.linkedin }}" target="_blank" rel="noreferrer">LinkedIn</a>
+        <a class="button secondary" href="/resume" download>Download Resume</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="about" class="section">
+  <div class="container">
+    <div class="section-heading">
+      <p class="eyebrow">About</p>
+      <h3>Career focus</h3>
+    </div>
+    <p class="lead">
+      I am a student exploring finance, investing, and data-driven decision-making.
+      I enjoy combining analytical thinking with structured business problem solving and
+      building work that can translate into real-world investment and strategy insight.
+    </p>
+  </div>
+</section>
+
+<section id="projects" class="section alt">
+  <div class="container">
+    <div class="section-heading">
+      <p class="eyebrow">Projects</p>
+      <h3>Selected work</h3>
+    </div>
+
+    <div class="project-grid">
+      {% for project in projects %}
+      <article class="project-card">
+        <h4>{{ project.title }}</h4>
+        <p>{{ project.summary }}</p>
+        <div class="tags">
+          {% for tech in project.technologies.split(',') %}
+          <span>{{ tech.strip() }}</span>
+          {% endfor %}
+        </div>
+        {% if project.link %}
+        <a href="{{ project.link }}" target="_blank" rel="noreferrer">View project</a>
+        {% endif %}
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section id="contact" class="section">
+  <div class="container contact-box">
+    <div class="section-heading">
+      <p class="eyebrow">Contact</p>
+      <h3>Let’s connect</h3>
+    </div>
+    <ul class="contact-list">
+      <li>Email: {{ profile.email }}</li>
+      <li>Location: {{ profile.location }}</li>
+      <li>GitHub: <a href="{{ profile.github }}" target="_blank" rel="noreferrer">{{ profile.github }}</a></li>
+    </ul>
+  </div>
+</section>
+{% endblock %}

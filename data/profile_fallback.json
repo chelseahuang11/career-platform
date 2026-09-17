@@ -1,0 +1,34 @@
+{
+  "profile": {
+    "id": 1,
+    "name": "Chelsea Huang",
+    "title": "Student | Finance, Investing, and Data Analysis",
+    "location": "Los Angeles, CA",
+    "email": "chelseahuang11@gmail.com",
+    "linkedin": "https://www.linkedin.com/in/chelseahuang",
+    "github": "https://github.com/chelseahuang11"
+  },
+  "projects": [
+    {
+      "id": 1,
+      "title": "Investment Screening Dashboard",
+      "summary": "Built a dashboard to evaluate public market opportunities using structured financial metrics and scenario comparisons.",
+      "technologies": "Python, SQLite, Jinja, FastAPI",
+      "link": "https://example.com/project/investment-screening"
+    },
+    {
+      "id": 2,
+      "title": "Portfolio Strategy Case Study",
+      "summary": "Created a compact investment memo that compared risk-adjusted return assumptions across multiple sectors and allocation scenarios.",
+      "technologies": "Excel, Analysis, Research",
+      "link": "https://example.com/project/portfolio-strategy"
+    },
+    {
+      "id": 3,
+      "title": "Data Storytelling Project",
+      "summary": "Used a structured dataset to present key business insights with visual summaries and concise narrative explanations.",
+      "technologies": "SQL, Python, Data Visualization",
+      "link": "https://example.com/project/data-storytelling"
+    }
+  ]
+}
