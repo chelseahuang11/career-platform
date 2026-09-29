@@ -57,7 +57,9 @@ def init_db() -> None:
             ),
         )
 
-        for project in [
+        # Demo projects only fill an empty table, so they never reappear next to real ones.
+        has_projects = connection.execute("SELECT 1 FROM projects LIMIT 1").fetchone()
+        for project in [] if has_projects else [
             (
                 "Investment Screening Dashboard",
                 "Built a dashboard to evaluate public market opportunities using structured financial metrics and scenario comparisons.",
