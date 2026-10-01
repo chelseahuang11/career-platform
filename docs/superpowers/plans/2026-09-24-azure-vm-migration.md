@@ -50,7 +50,7 @@
 | 6. Data | Done | 2026-09-29 | Laptop backup made. DB copied to the VM; fingerprint `ca406667…` matches on both sides; integrity `ok`; 1 profile and 3 projects. |
 | 7. Processes | Done | 2026-09-29 | uvicorn listening on `127.0.0.1:8000`, loopback only (restarted twice on request; now listener pid 14033 under `uv run` pid 14027), and it survived the SSH logout. `.env` variables are in its environment. DB fingerprint unchanged by startup. Fixed the plan's `pgrep`/`pkill` commands, which matched their own SSH shell. |
 | 8. Verify | Done | 2026-09-29 | Site answers on the VM and through an SSH tunnel on laptop port 8080. All 4 names render; DB fingerprint still equals `LAPTOP_SHA`; 0 fallback/error lines in the log. |
-| 9. Shutdown | Not started | | |
+| 9. Shutdown | Done | 2026-10-01 | IP confirmed Static. VM deallocated with `az vm deallocate` (the same as the portal's Stop), which also stopped uvicorn. Power state `VM deallocated`. |
 
 **The VM stays billed while it's running.** If you pause between sessions, run 9.2–9.3 to deallocate it, and 1.1 to start it again.
 
@@ -286,25 +286,28 @@ Paste these into each new Git Bash window before running any laptop command.
 
 **Where:** laptop (+ portal as an alternative)
 
-- [ ] **Step 9.1: Check whether the public IP will survive**
+- [x] **Step 9.1: Check whether the public IP will survive**
   - **Run (laptop):** `az network public-ip list --subscription "$SUB" -g rg-career-platform --query "[].{name:name, ip:ipAddress, method:publicIPAllocationMethod}" -o table`
   - **Why:** a `Dynamic` IP is released on deallocate, so `<VM_PUBLIC_IP>` may change. A `Static` IP is kept (and still billed while the VM is off).
   - **Check:** note the `method`. If it's `Dynamic`, expect a new IP next time and update this plan's Global Constraints then.
   - **Undo:** nothing to undo (read-only).
+  - **Result (2026-10-01):** `Static`. The IP survives deallocation; it was the same on 2026-09-29 and 2026-10-01.
 
-- [ ] **Step 9.2: Stop uvicorn cleanly**
+- [x] **Step 9.2: Stop uvicorn cleanly**
   - **Run (laptop):** `ssh -i $KEY $VM 'P=$(ss -ltnp | grep ":8000 " | grep -o "pid=[0-9]*" | head -1 | cut -d= -f2); test -n "$P" && kill $P; for i in 1 2 3 4 5; do ss -ltn | grep -q ":8000 " || break; sleep 1; done; ss -ltn | grep -q ":8000 " && echo "still running" || echo stopped'`
     (This finds the server by the port it owns. `pkill -f` would kill the SSH shell running the command; see step 7.1.)
   - **Why:** lets SQLite close the DB before the VM powers off.
   - **Check:** prints `stopped`.
   - **Undo:** re-run step 7.1.
+  - **Result (2026-10-01):** not run as a separate step. Deallocating in 9.3 shuts down Ubuntu, which stops uvicorn with it. The app doesn't write to the database, so there was nothing to flush. The port-based stop itself was proven during the 2026-09-29 and 2026-10-01 restarts.
 
-- [ ] **Step 9.3: Deallocate the VM**
+- [x] **Step 9.3: Deallocate the VM**
   - **Run (laptop):** `az vm deallocate --subscription "$SUB" -g rg-career-platform -n vm-career-platform`
     *Portal alternative:* Virtual machines → vm-career-platform → **Stop** (the portal's Stop deallocates).
   - **Why:** stops compute billing. `sudo shutdown` inside the VM stops the OS but keeps the VM allocated and billed.
   - **Check:** `az vm get-instance-view --subscription "$SUB" -g rg-career-platform -n vm-career-platform --query "instanceView.statuses[?starts_with(code,'PowerState')].displayStatus" -o tsv` prints `VM deallocated`.
   - **Undo:** `az vm start --subscription "$SUB" -g rg-career-platform -n vm-career-platform`, then re-run 7.1 (uvicorn is not a system service, so it won't start by itself on boot) and 8.1. The clone, `.venv`, `.env` and DB stay on the disk.
+  - **Result (2026-10-01):** the agent ran `az vm deallocate` at Chelsea's request. Power state check: `VM deallocated`. Remaining inbound rule: `Allow-SSH-Laptop` only (`Temp-HTTP-8000` was already deleted). The resource group is kept for the next class.
 
 ---
 
@@ -331,6 +334,47 @@ What section 8 tested and what each check showed. All checks ran against the liv
 | 15 | 8.4 | Page looks right in a real browser | Chelsea opens `http://localhost:8080` and `/resume` | Not yet confirmed; the tunnel was left open for this | ⏳ |
 
 **What these checks don't cover:**
-- The site isn't reachable on the public IP. That's deliberate, because port 8000 was never opened in the NSG.
+- Reachability from the internet. The public-IP test was done separately; see "Two locks" below.
 - Nothing wrote to the DB. The app is read-only for visitors, so the VM copy and the laptop copy stay identical until one of them is edited.
 - The server won't come back after a VM reboot, since uvicorn isn't a system service. After `az vm start`, re-run 7.1.
+
+## Two locks (2026-09-29)
+
+To reach the app from the internet, a request has to get past two independent locks: the NSG rule for port 8000 (Azure's firewall), and uvicorn's `--host` setting (the address the app listens on). Chelsea made the firewall changes in the portal; the agent changed only `--host` and made no Azure changes.
+
+| Guide step | Rule for 8000 | App listens on | Result |
+|---|---|---|---|
+| 2. Chelsea adds `Temp-HTTP-8000` (priority 310, source Any) in the portal | Yes | `0.0.0.0:8000` (from the first start in 7.1) | Both locks open: the site was reachable on the public IP until the loopback restart |
+| 3. Restart on every address | Yes | `0.0.0.0:8000` (pid 13878) | Site reachable; `<VM_PRIVATE_IP>:8000` → 200 |
+| 5. Restart so only the VM can reach it | Yes | `127.0.0.1:8000` (pid 14033) | Laptop → `http://<VM_PUBLIC_IP>:8000` refused right away (curl exit 7) |
+| 4. Chelsea deletes `Temp-HTTP-8000` in the portal | No | `127.0.0.1:8000` | Laptop → `http://<VM_PUBLIC_IP>:8000` hangs, then times out (curl exit 28). `az network nsg rule list` shows only `Allow-SSH-Laptop` (port 22, laptop /32). Tunnel `localhost:8080` → 200 |
+
+Steps 4 and 5 ran in reverse order; the end state is the one the guide intends: port 22 from the laptop only, and the app on `127.0.0.1:8000`.
+
+**Correction:** earlier versions of this plan said port 8000 was "never opened in the NSG". That was never checked and was wrong: `Temp-HTTP-8000` allowed port 8000 from anywhere until step 4.
+
+## Your profile replaces the demo data (2026-10-01)
+
+The guide puts your own profile into the laptop database *before* the Data section. This migration first copied the demo data, which the guide notes proves nothing, because a fresh seed shows the same thing. So the profile went in afterwards, and Data, Processes and Verify run again below.
+
+- [x] **Seed fix (laptop, code).** `init_db()` re-inserted the 3 demo projects whenever their titles were missing, so replacing them wouldn't survive a restart. Fixed test-first in `71cd1ec` ("Seed demo projects only into an empty projects table"): `tests/test_database.py::test_init_db_does_not_add_demo_projects_next_to_real_ones` failed first (the 3 demo titles came back), then passed after the fix. Suite: 6 passed. `tests/conftest.py` now points tests at a temporary directory, so running them can't touch `data/career_platform.db`; the real DB's fingerprint was unchanged across every test run. Merged into `main` and pushed. The laptop now has uv 0.12.21 and a `.venv` built with `uv sync --locked` (Python 3.12.14), so tests run locally.
+- [x] **Profile and projects written (laptop, data).** Backup `data/career_platform.20261001-101317.bak.db` taken first, then one transaction: profile row updated (headline, `chuang30@lion.lmu.edu`, `linkedin.com/in/chelsea-huang8`, GitHub unchanged), the 3 demo projects deleted, and 4 projects from the resume inserted (Career Platform Website, RMBS Market Intelligence Dashboard, Allegiant–Sun Country Airlines Acquisition Analysis, RollEase Startup Project). Before: `profile=1 projects=3`. After: `profile=1 projects=4`, integrity `ok`.
+  - New `LAPTOP_SHA = f27e4d51cf2cd8d282e5d5d99e2971a11a722d2c1683fc8dbf6b6ba20b468e45`.
+  - Rendered through the app on the laptop: the email, LinkedIn, headline and all 4 projects appear on `/` and `/resume`; none of the 3 demo titles or the old Gmail address do. Starting the app didn't change the file (same fingerprint, still 4 projects).
+  - Not yet in the database: experience, education, skills and the About paragraph, which is still hard-coded demo text in the templates. These need new tables and are left for a later redesign. `data/profile_fallback.json` still holds the demo profile and is only shown if the database fails.
+- [x] **Data, Processes and Verify again (VM).**
+  - **Blocker first:** the VM was deallocated by auto-shutdown, and from off campus SSH timed out (`Connection timed out`): `Allow-SSH-Laptop` allows only the campus address, so the firewall dropped the connection. Back on campus, the laptop's address matched the rule again, so no rule change was needed. `az vm start` → `VM running`, and SSH worked.
+  - **Data:** `git pull` on the VM → `71cd1ec`, matching the laptop. Old VM DB (demo, `ca406667…`) backed up to `data/career_platform.20261001-demo.bak.db`. `scp exit=0`. VM fingerprint `f27e4d51cf2cd8d282e5d5d99e2971a11a722d2c1683fc8dbf6b6ba20b468e45`, equal to the new `LAPTOP_SHA`. `PRAGMA integrity_check` → `ok`, 1 profile with email `chuang30@lion.lmu.edu`, and the 4 resume projects.
+  - **Processes:** the 7.1 command (loopback only). `ss`: `127.0.0.1:8000 uvicorn pid=1419`. Health `{"status":"ok"}`.
+  - **Verify (8.1–8.3), from a new SSH session:** `/` → 200 and `/resume` → 200. On `/`: `Chelsea Huang`, `chuang30@lion.lmu.edu`, `chelsea-huang8` and all 4 project titles are present, and **0** demo project titles. The DB fingerprint is unchanged after startup (`f27e4d51…`), still 4 projects, so the seed fix held. 0 fallback/error lines in `uvicorn.log`.
+  - **Why this run is stronger evidence than the first:** the seed only knows the demo profile and projects. Your email and project titles can only have come from the copied file, and the fingerprint proves it's the exact laptop file.
+
+### Two locks, second run: screenshot with your data (2026-10-01)
+
+| Step | Rule for 8000 | App listens on | Result |
+|---|---|---|---|
+| Chelsea adds `Temp-HTTP-8000` (310, TCP 8000, source Any) in the portal | Yes | `127.0.0.1:8000` | `az network nsg rule list` shows the rule. Laptop → `http://<VM_PUBLIC_IP>:8000` refused right away (curl exit 7) |
+| Agent restarts the app on every address | Yes | `0.0.0.0:8000` (pid 1568) | Laptop → public URL returns the page with `chuang30@lion.lmu.edu`, "Career Platform Website (this site)" and "RollEase Startup Project" |
+| Chelsea takes the screenshot | Yes | `0.0.0.0:8000` | Saved as `docs/evidence/ex03-site.png`: address bar `<VM_PUBLIC_IP>:8000` marked "Not secure", her name, headline and all 4 projects |
+| Chelsea deletes `Temp-HTTP-8000` in the portal | No | `0.0.0.0:8000` | Only `Allow-SSH-Laptop` remains. 4 page requests reached the app while it was public |
+| Agent restarts the app for the VM only | No | `127.0.0.1:8000` (pid 1808) | Laptop → public URL hangs, then times out (curl exit 28). Final state: port 22 from the laptop only, app on loopback |
