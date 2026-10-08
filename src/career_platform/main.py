@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import re
-import sqlite3
+import psycopg
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -52,14 +52,14 @@ def load_fallback() -> tuple[Profile, list[Project]]:
 def load_public_content() -> tuple[Profile, list[Project]]:
     try:
         return get_profile(), get_projects()
-    except (OSError, sqlite3.Error, ValueError):
+    except (OSError, psycopg.Error, ValueError):
         logger.exception("Database unavailable; serving the public profile fallback")
         return load_fallback()
 
 
 try:
     init_db()
-except (OSError, sqlite3.Error):
+except (OSError, psycopg.Error, ValueError):
     logger.exception("Database initialization failed; the public fallback remains available")
 
 

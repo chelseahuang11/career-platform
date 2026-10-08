@@ -1,5 +1,8 @@
-import sqlite3
+from concurrent.futures import ThreadPoolExecutor
 
+import psycopg
+
+from career_platform.config import database_url
 from career_platform.database import init_db
 
 DEMO_TITLES = {
@@ -9,57 +12,46 @@ DEMO_TITLES = {
 }
 
 
-def _use_database(monkeypatch, path) -> None:
-    monkeypatch.setenv("CAREER_PLATFORM_DATABASE", str(path))
-
-
-def _project_titles(path) -> set[str]:
-    connection = sqlite3.connect(path)
-    try:
+def _project_titles() -> set[str]:
+    with psycopg.connect(database_url()) as connection:
         return {row[0] for row in connection.execute("SELECT title FROM projects")}
-    finally:
-        connection.close()
 
 
-def test_init_db_seeds_demo_projects_into_empty_database(monkeypatch, tmp_path) -> None:
-    db_path = tmp_path / "fresh.db"
-    _use_database(monkeypatch, db_path)
+def test_init_db_seeds_demo_projects_into_empty_database(empty_database) -> None:
+    init_db()
+
+    assert _project_titles() == DEMO_TITLES
+
+
+def test_init_db_does_not_add_demo_projects_next_to_real_ones(empty_database) -> None:
+    init_db()
+    with psycopg.connect(database_url()) as connection:
+        connection.execute("DELETE FROM projects")
+        connection.execute(
+            "INSERT INTO projects (title, summary, technologies, link) VALUES (%s, %s, %s, %s)",
+            ("My Real Project", "Something I built.", "Python", None),
+        )
 
     init_db()
 
-    assert _project_titles(db_path) == DEMO_TITLES
+    assert _project_titles() == {"My Real Project"}
 
 
-def test_init_db_does_not_add_demo_projects_next_to_real_ones(monkeypatch, tmp_path) -> None:
-    db_path = tmp_path / "real.db"
-    _use_database(monkeypatch, db_path)
+def test_init_db_keeps_an_existing_profile(empty_database) -> None:
     init_db()
-    connection = sqlite3.connect(db_path)
-    connection.execute("DELETE FROM projects")
-    connection.execute(
-        "INSERT INTO projects (title, summary, technologies, link) VALUES (?, ?, ?, ?)",
-        ("My Real Project", "Something I built.", "Python", None),
-    )
-    connection.commit()
-    connection.close()
+    with psycopg.connect(database_url()) as connection:
+        connection.execute("UPDATE profile SET email = %s WHERE id = 1", ("me@example.edu",))
 
     init_db()
 
-    assert _project_titles(db_path) == {"My Real Project"}
-
-
-def test_init_db_keeps_an_existing_profile(monkeypatch, tmp_path) -> None:
-    db_path = tmp_path / "profile.db"
-    _use_database(monkeypatch, db_path)
-    init_db()
-    connection = sqlite3.connect(db_path)
-    connection.execute("UPDATE profile SET email = ? WHERE id = 1", ("me@example.edu",))
-    connection.commit()
-    connection.close()
-
-    init_db()
-
-    connection = sqlite3.connect(db_path)
-    email = connection.execute("SELECT email FROM profile WHERE id = 1").fetchone()[0]
-    connection.close()
+    with psycopg.connect(database_url()) as connection:
+        email = connection.execute("SELECT email FROM profile WHERE id = 1").fetchone()[0]
     assert email == "me@example.edu"
+
+
+def test_init_db_is_safe_when_several_processes_start_together(empty_database) -> None:
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        for result in [pool.submit(init_db) for _ in range(4)]:
+            result.result()
+
+    assert _project_titles() == DEMO_TITLES

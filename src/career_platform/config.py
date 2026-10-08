@@ -11,9 +11,11 @@ def data_directory() -> Path:
     return data_path
 
 
-def database_path() -> Path:
-    configured_path = os.getenv("CAREER_PLATFORM_DATABASE")
-    return Path(configured_path) if configured_path else data_directory() / "career_platform.db"
+def database_url() -> str:
+    url = os.getenv("DATABASE_URL")
+    if not url:
+        raise ValueError("DATABASE_URL is not set")
+    return url
 
 
 def fallback_path() -> Path:

@@ -56,3 +56,20 @@ def test_homepage_puts_the_site_project_last(monkeypatch) -> None:
     assert text.index("RMBS Dashboard") < text.index("Career Platform Website (this site)")
     assert '<p class="project-meta">Capstone, 2026</p>' in text
     assert "Tracked <strong>9</strong> indicators." in text
+
+
+def test_homepage_uses_the_fallback_when_the_database_is_unreachable(monkeypatch, caplog) -> None:
+    # Nothing listens on port 1, so the connection is refused straight away.
+    monkeypatch.setenv("DATABASE_URL", "postgresql://nobody@127.0.0.1:1/missing_test")
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "Investment Screening Dashboard" in response.text
+    assert "Database unavailable" in caplog.text
+
+
+def test_homepage_uses_the_fallback_when_database_url_is_not_set(monkeypatch, caplog) -> None:
+    monkeypatch.delenv("DATABASE_URL")
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "Investment Screening Dashboard" in response.text
+    assert "Database unavailable" in caplog.text
