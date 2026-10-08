@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import logging
+import re
 import sqlite3
 from pathlib import Path
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse
+from markupsafe import Markup, escape
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -14,7 +16,23 @@ from .database import get_profile, get_projects, init_db
 from .models import Profile, Project
 
 BASE_DIR = Path(__file__).resolve().parent
+RESUME_PDF = BASE_DIR / "static" / "files" / "Chelsea_Huang_Resume.pdf"
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+
+FIGURE = re.compile(r"\$?\d[\d,.]*\d[%MKB]?|\$?\d[%MKB]?")
+
+
+def figures(text: str) -> Markup:
+    """Wrap each number in <strong> so project results stand out from the prose."""
+    parts = FIGURE.split(text)
+    numbers = FIGURE.findall(text)
+    marked = Markup(escape(parts[0]))
+    for number, rest in zip(numbers, parts[1:]):
+        marked += Markup("<strong>") + escape(number) + Markup("</strong>") + escape(rest)
+    return marked
+
+
+templates.env.filters["figures"] = figures
 
 app = FastAPI(title="Career Platform", version="0.1.0")
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
@@ -63,8 +81,17 @@ async def home(request: Request):
     )
 
 
-@app.get("/resume", response_class=HTMLResponse)
+@app.get("/resume")
 async def resume(request: Request):
+    if RESUME_PDF.is_file():
+        return FileResponse(
+            RESUME_PDF,
+            media_type="application/pdf",
+            filename=RESUME_PDF.name,
+            content_disposition_type="inline",
+        )
+
+    # Without the PDF, fall back to the resume page built from the database.
     profile, projects = load_public_content()
     response = templates.TemplateResponse(
         request,

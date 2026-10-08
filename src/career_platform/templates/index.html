@@ -1,21 +1,63 @@
 {% extends "base.html" %}
 
-{% block title %}{{ profile.name }} | Profile{% endblock %}
+{% block title %}{{ profile.name }} | Finance and Analytics{% endblock %}
+
+{% macro project_card(project) %}
+{# The summary starts with "Course, dates." Show that as a small line above the results. #}
+{% set parts = project.summary.split('. ', 1) %}
+<article class="project-card">
+  <h4>{{ project.title }}</h4>
+  {% if parts | length > 1 %}
+  <p class="project-meta">{{ parts[0] }}</p>
+  <p class="project-result">{{ parts[1] | figures }}</p>
+  {% else %}
+  <p class="project-result">{{ project.summary | figures }}</p>
+  {% endif %}
+  <div class="tags">
+    {% for tech in project.technologies.split(',') if tech.strip() %}
+    <span>{{ tech.strip() }}</span>
+    {% endfor %}
+  </div>
+  {% if project.link %}
+  <a href="{{ project.link }}" target="_blank" rel="noreferrer">View project</a>
+  {% endif %}
+</article>
+{% endmacro %}
 
 {% block content %}
+{% set title_parts = profile.title.split('|') %}
 <section class="hero">
   <div class="container hero-inner">
     <div>
-      <p class="eyebrow">Student / New Grad</p>
       <h1>{{ profile.name }}</h1>
-      <h2>{{ profile.title }}</h2>
-      <p class="location">{{ profile.location }}</p>
+      <p class="hero-claim">
+        I value companies and build the data pipelines that feed investment decisions,
+        and I’m looking for a role where finance and tech skills both get used every day.
+      </p>
+      <p class="hero-role">{{ title_parts[0].strip() }}</p>
+      <p class="location">
+        {% if title_parts | length > 1 %}{{ title_parts[1].strip() }} · {% endif %}{{ profile.location }}
+      </p>
       <div class="cta-row">
-        <a class="button primary" href="mailto:{{ profile.email }}">Email</a>
+        <a class="button primary" href="/resume">Resume (PDF)</a>
+        <a class="button secondary" href="mailto:{{ profile.email }}">Email</a>
         <a class="button secondary" href="{{ profile.linkedin }}" target="_blank" rel="noreferrer">LinkedIn</a>
-        <a class="button secondary" href="/resume" download>Download Resume</a>
       </div>
     </div>
+    <dl class="hero-figures">
+      <div>
+        <dt>$140M</dt>
+        <dd>deal synergies modeled in an airline acquisition analysis</dd>
+      </div>
+      <div>
+        <dt>16</dt>
+        <dd>financial sources feeding one automated SQL pipeline</dd>
+      </div>
+      <div>
+        <dt>9</dt>
+        <dd>housing and credit indicators tracked on a live dashboard</dd>
+      </div>
+    </dl>
   </div>
 </section>
 
@@ -41,19 +83,12 @@
     </div>
 
     <div class="project-grid">
-      {% for project in projects %}
-      <article class="project-card">
-        <h4>{{ project.title }}</h4>
-        <p>{{ project.summary }}</p>
-        <div class="tags">
-          {% for tech in project.technologies.split(',') %}
-          <span>{{ tech.strip() }}</span>
-          {% endfor %}
-        </div>
-        {% if project.link %}
-        <a href="{{ project.link }}" target="_blank" rel="noreferrer">View project</a>
-        {% endif %}
-      </article>
+      {# Finance and analytics work leads; the project about this website goes last. #}
+      {% for project in projects if '(this site)' not in project.title %}
+      {{ project_card(project) }}
+      {% endfor %}
+      {% for project in projects if '(this site)' in project.title %}
+      {{ project_card(project) }}
       {% endfor %}
     </div>
   </div>
