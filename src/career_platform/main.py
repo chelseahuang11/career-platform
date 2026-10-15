@@ -81,6 +81,12 @@ async def home(request: Request):
     )
 
 
+@app.get("/privacy")
+async def privacy(request: Request):
+    profile, _ = load_public_content()
+    return templates.TemplateResponse(request, "privacy.html", {"profile": profile})
+
+
 @app.get("/resume")
 async def resume(request: Request):
     if RESUME_PDF.is_file():

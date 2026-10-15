@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy | {{ profile.name }}{% endblock %}
+
+{# Written for the planned Google Analytics 4 setup (G-R24K9LD7H4) with page views
+   and outbound clicks only. Publish it together with the tag, not before. #}
+
+{% block content %}
+<section class="section">
+  <div class="container prose">
+    <div class="section-heading">
+      <p class="eyebrow">Privacy</p>
+      <h3>What this site collects</h3>
+    </div>
+    <p class="updated">Last updated October 15, 2026</p>
+
+    <h4>The short version</h4>
+    <ul>
+      <li>This site has no accounts, no forms, and nothing to sign up for.</li>
+      <li>It uses Google Analytics to count page views and clicks on links to other sites.
+        Google Analytics sets cookies in your browser to do this.</li>
+      <li>The company that hosts the site keeps a technical log of each request, including your IP address.</li>
+      <li>You can use the whole site with analytics blocked.</li>
+    </ul>
+
+    <h4>Google Analytics</h4>
+    <p>When a page loads, a script from Google records:</p>
+    <ul>
+      <li>the page you viewed, its title, and the page or site that sent you here, if your browser shares it</li>
+      <li>the address of any link you click that leads off this site, such as LinkedIn or GitHub</li>
+      <li>your browser, operating system, device type, screen size, and language</li>
+      <li>your approximate location (country, region, and city), which Google works out from your IP address</li>
+      <li>a random ID stored in a cookie, so repeat visits from the same browser can be counted together</li>
+    </ul>
+    <p>
+      It does not collect your name or email address. This site doesn't ask for them.
+    </p>
+    <p>
+      <strong>Why:</strong> to see which pages and projects people look at, and which links they follow,
+      so I know what is useful.
+    </p>
+
+    <h4>Cookies</h4>
+    <p>The site itself sets no cookies. Google Analytics sets two:</p>
+    <ul>
+      <li><code>_ga</code>, which holds the random ID</li>
+      <li><code>_ga_R24K9LD7H4</code>, which keeps track of your current visit</li>
+    </ul>
+    <p>By default both last up to two years and are renewed each time you visit.</p>
+
+    <h4>Server logs</h4>
+    <p>
+      The site runs on Railway. Like most web hosts, Railway logs each request: your IP address, the time,
+      the page requested, and whether it worked. These logs are used to keep the site running and fix problems.
+    </p>
+
+    <h4>Who receives this information</h4>
+    <ul>
+      <li><strong>Google</strong> receives the analytics data. Google explains how it uses data from sites
+        like this one at <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noreferrer">How Google uses information from sites or apps that use our services</a>.</li>
+      <li><strong>Railway</strong> hosts the site and keeps the server logs.</li>
+      <li><strong>Cloudflare</strong> runs the domain's DNS, the system that points browsers to the site.
+        Visits to the site do not pass through Cloudflare.</li>
+    </ul>
+    <p>I don't sell this information.</p>
+
+    <h4>Your choices</h4>
+    <ul>
+      <li><strong>Block analytics.</strong> A content or tracker blocker, or your browser's tracking protection,
+        stops the Google Analytics script. The site works the same without it.</li>
+      <li><strong>Google's opt-out.</strong> Google offers a
+        <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noreferrer">browser add-on</a>
+        that stops Google Analytics on every site.</li>
+      <li><strong>Clear or block cookies.</strong> Deleting the <code>_ga</code> cookies resets your ID.
+        Blocking cookies for this site stops new ones being set.</li>
+    </ul>
+    <p>
+      This site has no cookie banner or on-page opt-out switch. It does not respond to Do Not Track
+      or Global Privacy Control signals.
+    </p>
+    <p>
+      Analytics data isn't linked to your name, so I usually can't find a particular person's data.
+      If you have a question or request, email me at
+      <a href="mailto:{{ profile.email }}">{{ profile.email }}</a>.
+    </p>
+
+    <h4>If you email me</h4>
+    <p>
+      The Email link opens your own email app. Your message goes to my email provider, not through this site.
+    </p>
+
+    <h4>Changes</h4>
+    <p>If what this site collects changes, I'll update this page and the date at the top.</p>
+  </div>
+</section>
+{% endblock %}

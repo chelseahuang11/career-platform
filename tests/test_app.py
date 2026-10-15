@@ -34,6 +34,15 @@ def test_resume_falls_back_to_html_without_the_pdf(monkeypatch, tmp_path) -> Non
     assert "Portfolio Strategy Case Study" in response.text
 
 
+def test_privacy_page_describes_analytics_and_is_linked_from_the_footer() -> None:
+    response = client.get("/privacy")
+    assert response.status_code == 200
+    assert "Google Analytics" in response.text
+    assert "_ga_R24K9LD7H4" in response.text
+    assert "does not respond to Do Not Track" in response.text
+    assert '<a href="/privacy">Privacy</a>' in client.get("/").text
+
+
 def test_figures_marks_numbers_and_escapes_the_rest() -> None:
     from career_platform.main import figures
 

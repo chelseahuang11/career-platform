@@ -69,6 +69,15 @@ h2 { margin: 10px 0 0; color: var(--muted); font-size: clamp(1.3rem, 2vw, 1.8rem
 .contact-box { background: white; border: 1px solid var(--line); border-radius: 16px; padding: 28px; }
 .contact-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
 .contact-list a, .project-card a { color: var(--primary); font-weight: 700; }
+.prose { max-width: 760px; }
+.prose h4 { margin: 32px 0 8px; font-size: 1.15rem; }
+.prose p, .prose li { color: var(--muted); }
+.prose a { color: var(--primary); font-weight: 700; }
+.prose ul { padding-left: 20px; }
+.prose li + li { margin-top: 6px; }
+.updated { margin: 0; color: var(--muted); font-size: .85rem; font-weight: 600; }
+.site-footer { border-top: 1px solid var(--line); background: white; padding: 20px 0; font-size: .9rem; }
+.site-footer a { color: var(--muted); font-weight: 600; }
 @media (max-width: 600px) {
   .nav { flex-direction: column; justify-content: center; padding: 12px 0; }
   nav { gap: 10px; }
