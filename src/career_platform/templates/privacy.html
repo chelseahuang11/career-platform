@@ -18,13 +18,15 @@
     <ul>
       <li>This site has no accounts, no forms, and nothing to sign up for.</li>
       <li>It uses Google Analytics to count page views and clicks on links to other sites.
-        Google Analytics sets cookies in your browser to do this.</li>
+        Google Analytics sets cookies only if you click <strong>Accept</strong> in the bar at the bottom of the page.</li>
+      <li>If you decline, or don't choose, no analytics cookies are set, but Google still receives a basic,
+        cookie-free notice of each page you view (details below).</li>
       <li>The company that hosts the site keeps a technical log of each request, including your IP address.</li>
-      <li>You can use the whole site with analytics blocked.</li>
+      <li>You can use the whole site with analytics declined or blocked.</li>
     </ul>
 
     <h4>Google Analytics</h4>
-    <p>When a page loads, a script from Google records:</p>
+    <p>If you accept analytics, a script from Google records:</p>
     <ul>
       <li>the page you viewed, its title, and the page or site that sent you here, if your browser shares it</li>
       <li>the address of any link you click that leads off this site, such as LinkedIn or GitHub</li>
@@ -36,17 +38,27 @@
       It does not collect your name or email address. This site doesn't ask for them.
     </p>
     <p>
+      If you decline, or haven't chosen yet, the Google script still loads, but it uses Google's
+      Consent Mode: it sets no cookies and stores no ID. It still sends Google a short notice for each
+      page view, including the page address, the time, and your browser details. Because it has no ID,
+      these notices can't be linked together as one visitor.
+    </p>
+    <p>
       <strong>Why:</strong> to see which pages and projects people look at, and which links they follow,
       so I know what is useful.
     </p>
 
     <h4>Cookies</h4>
-    <p>The site itself sets no cookies. Google Analytics sets two:</p>
+    <p>The site itself sets no cookies. Only if you accept analytics does Google Analytics set two:</p>
     <ul>
       <li><code>_ga</code>, which holds the random ID</li>
       <li><code>_ga_R24K9LD7H4</code>, which keeps track of your current visit</li>
     </ul>
     <p>By default both last up to two years and are renewed each time you visit.</p>
+    <p>
+      To remember your Accept or Decline choice, the site saves one setting, <code>analytics-consent</code>,
+      in your browser's local storage. It stays on your device and isn't sent to me or to Google.
+    </p>
 
     <h4>Server logs</h4>
     <p>
@@ -66,8 +78,12 @@
 
     <h4>Your choices</h4>
     <ul>
+      <li><strong>Accept or decline.</strong> The bar at the bottom of the page asks before any analytics
+        cookies are set. You can change your answer at any time:
+        <button type="button" class="button secondary" data-consent-reset>Change my analytics choice</button>
+        Declining after you accepted deletes the <code>_ga</code> cookies from this site.</li>
       <li><strong>Block analytics.</strong> A content or tracker blocker, or your browser's tracking protection,
-        stops the Google Analytics script. The site works the same without it.</li>
+        stops the Google Analytics script completely, including the cookie-free notices. The site works the same without it.</li>
       <li><strong>Google's opt-out.</strong> Google offers a
         <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noreferrer">browser add-on</a>
         that stops Google Analytics on every site.</li>
@@ -75,8 +91,9 @@
         Blocking cookies for this site stops new ones being set.</li>
     </ul>
     <p>
-      This site has no cookie banner or on-page opt-out switch. It does not respond to Do Not Track
-      or Global Privacy Control signals.
+      The site does not respond to Do Not Track or Global Privacy Control signals. Use the Accept or
+      Decline buttons instead. If your browser blocks local storage, the site can't remember your choice,
+      so the bar will ask again on each page.
     </p>
     <p>
       Analytics data isn't linked to your name, so I usually can't find a particular person's data.

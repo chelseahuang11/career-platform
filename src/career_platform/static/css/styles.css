@@ -78,6 +78,16 @@ h2 { margin: 10px 0 0; color: var(--muted); font-size: clamp(1.3rem, 2vw, 1.8rem
 .updated { margin: 0; color: var(--muted); font-size: .85rem; font-weight: 600; }
 .site-footer { border-top: 1px solid var(--line); background: white; padding: 20px 0; font-size: .9rem; }
 .site-footer a { color: var(--muted); font-weight: 600; }
+.consent-bar { position: fixed; left: 0; right: 0; bottom: 0; background: white; border-top: 1px solid var(--line); box-shadow: 0 -6px 20px rgba(22, 34, 53, .08); padding: 16px 0; }
+.consent-bar[hidden] { display: none; }
+.consent-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.consent-inner p { margin: 0; color: var(--muted); max-width: 62ch; }
+.consent-inner a { color: var(--primary); font-weight: 700; }
+.consent-actions { display: flex; gap: 10px; flex-shrink: 0; }
+button.button { font: inherit; font-weight: 700; cursor: pointer; }
+@media (max-width: 600px) {
+  .consent-inner { flex-direction: column; align-items: flex-start; }
+}
 @media (max-width: 600px) {
   .nav { flex-direction: column; justify-content: center; padding: 12px 0; }
   nav { gap: 10px; }

@@ -1,17 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Google tag (gtag.js). Every page extends this template, so it loads once per page. -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-R24K9LD7H4"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
+      // Consent Mode: no analytics cookies until the visitor accepts in the consent bar.
+      gtag('consent', 'default', {
+        analytics_storage: 'denied',
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied'
+      });
+      try {
+        if (localStorage.getItem('analytics-consent') === 'granted') {
+          gtag('consent', 'update', {analytics_storage: 'granted'});
+        }
+      } catch (e) {}
       gtag('js', new Date());
 
       gtag('config', 'G-R24K9LD7H4');
     </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}Career Platform{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}" />
   </head>
@@ -36,5 +48,56 @@
         <a href="/privacy">Privacy</a>
       </div>
     </footer>
+
+    <div class="consent-bar" role="region" aria-label="Analytics choice" hidden>
+      <div class="container consent-inner">
+        <p>
+          May this site use Google Analytics cookies to count page views and link clicks?
+          The site works the same either way. <a href="/privacy">Details</a>
+        </p>
+        <div class="consent-actions">
+          <button type="button" class="button primary" data-consent="granted">Accept</button>
+          <button type="button" class="button secondary" data-consent="denied">Decline</button>
+        </div>
+      </div>
+    </div>
+    <script>
+      (function () {
+        var bar = document.querySelector('.consent-bar');
+
+        function stored() {
+          try { return localStorage.getItem('analytics-consent'); } catch (e) { return null; }
+        }
+
+        // Analytics cookies are set on the bare domain, so clear them there and on this host.
+        function clearAnalyticsCookies() {
+          var host = location.hostname.replace(/^www\./, '');
+          document.cookie.split(';').forEach(function (cookie) {
+            var name = cookie.split('=')[0].trim();
+            if (name === '_ga' || name.indexOf('_ga_') === 0) {
+              var expired = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+              document.cookie = expired;
+              document.cookie = expired + '; domain=.' + host;
+            }
+          });
+        }
+
+        function choose(choice) {
+          try { localStorage.setItem('analytics-consent', choice); } catch (e) {}
+          gtag('consent', 'update', {analytics_storage: choice});
+          if (choice === 'denied') clearAnalyticsCookies();
+          bar.hidden = true;
+        }
+
+        document.querySelectorAll('[data-consent]').forEach(function (button) {
+          button.addEventListener('click', function () { choose(button.dataset.consent); });
+        });
+        document.querySelectorAll('[data-consent-reset]').forEach(function (button) {
+          button.addEventListener('click', function () { bar.hidden = false; });
+        });
+
+        if (stored() === null) bar.hidden = false;
+      })();
+    </script>
   </body>
 </html>

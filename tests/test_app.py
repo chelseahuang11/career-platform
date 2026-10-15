@@ -48,6 +48,19 @@ def test_google_tag_loads_once_on_each_page() -> None:
         text = client.get(path).text
         assert text.count("googletagmanager.com/gtag/js?id=G-R24K9LD7H4") == 1
         assert text.count("gtag('config', 'G-R24K9LD7H4')") == 1
+        # Google's instructions put the tag immediately after <head>.
+        after_head = text.split("<head>", 1)[1].lstrip()
+        assert after_head.startswith("<!-- Google tag (gtag.js)")
+
+
+def test_analytics_consent_starts_denied_and_can_be_changed() -> None:
+    text = client.get("/").text
+    # The default must reach the dataLayer before the config command sends anything.
+    assert text.index("gtag('consent', 'default'") < text.index("gtag('config', 'G-R24K9LD7H4')")
+    assert "analytics_storage: 'denied'" in text
+    assert '<div class="consent-bar" role="region" aria-label="Analytics choice" hidden>' in text
+    assert 'data-consent="granted"' in text and 'data-consent="denied"' in text
+    assert "data-consent-reset" in client.get("/privacy").text
 
 
 def test_figures_marks_numbers_and_escapes_the_rest() -> None:
