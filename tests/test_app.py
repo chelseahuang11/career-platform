@@ -43,6 +43,13 @@ def test_privacy_page_describes_analytics_and_is_linked_from_the_footer() -> Non
     assert '<a href="/privacy">Privacy</a>' in client.get("/").text
 
 
+def test_google_tag_loads_once_on_each_page() -> None:
+    for path in ("/", "/privacy"):
+        text = client.get(path).text
+        assert text.count("googletagmanager.com/gtag/js?id=G-R24K9LD7H4") == 1
+        assert text.count("gtag('config', 'G-R24K9LD7H4')") == 1
+
+
 def test_figures_marks_numbers_and_escapes_the_rest() -> None:
     from career_platform.main import figures
 

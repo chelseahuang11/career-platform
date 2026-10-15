@@ -3,6 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Google tag (gtag.js). Every page extends this template, so it loads once per page. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R24K9LD7H4"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-R24K9LD7H4');
+    </script>
     <title>{% block title %}Career Platform{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}" />
   </head>
