@@ -53,7 +53,50 @@ Details left out of the pictures, worth saying out loud:
 - The browser checks the certificate's name, dates and issuer before sending anything.
 - The GA4 script loads from Google, and analytics events go from the browser straight to Google, not through your server.
 
-## 3. What changes on Azure
+## 3. Azure VM with SQLite (earlier)
+
+The home side is the same. Everything after the internet happens on one Ubuntu VM.
+
+```mermaid
+flowchart LR
+  L["Laptop<br/>(browser)"] -- Wi-Fi --- R["Home router<br/>(also does NAT, DHCP)"]
+  R --- ISP["Internet provider"] --- F
+
+  subgraph Azure
+    F["Azure firewall (NSG)<br/>lets in 80, 443"]
+    subgraph VM["VM (Ubuntu)"]
+      N["nginx<br/>HTTPS ends here"] -- "plain HTTP<br/>127.0.0.1:8000" --> A["App<br/>(uvicorn)"]
+      A --> S[("SQLite file<br/>on the VM's disk")]
+    end
+    F --> N
+  end
+
+  L -. "1. where is chelseahuang.me?" .-> D["DNS<br/>(Cloudflare)"]
+```
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant B as Browser
+  participant D as DNS
+  participant N as nginx (on the VM)
+  participant A as App
+  participant S as SQLite file
+
+  B->>D: Where is chelseahuang.me?
+  D-->>B: The VM's public IP
+  B->>N: Connect on port 443 (firewall allows it), check the certificate
+  Note over B,N: Encrypted (HTTPS)
+  B->>N: GET /
+  N->>A: GET / (plain HTTP, inside the VM)
+  A->>S: Read profile and projects
+  S-->>A: Rows
+  A-->>N: HTML page
+  N-->>B: HTML page (encrypted)
+  B->>N: Get the CSS and other files
+```
+
+### What's different from Railway
 
 - Cloudflare answers with an **A record pointing to the VM's static public IP**, not a CNAME to Railway.
 - The Railway box becomes **NSG** (80 and 443 open, 22 from the laptop only, nothing on 8000) → **nginx** (handles the :80 → 301 redirect, TLS ends here, Let's Encrypt certificate renewed by the certbot timer) → **uvicorn on 127.0.0.1:8000** (2 workers under systemd) → **SQLite file** on the VM's disk.
