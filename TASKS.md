@@ -79,6 +79,5 @@ From the requirements audit on 2026-10-20. Each line: the gap, then the file or 
 
 - Controlled VM restart: no record exists and the VM was deleted 2026-10-13 in class. Marked unverified in the README.
 - Direct row comparison with Railway's database: not run (no public proxy; reading production data from inside Railway needs Chelsea's go-ahead). Deployment ID and source branch: done 2026-10-25.
-- Decisions and Reflection in the README are drafts. Chelsea to review and edit them in her own words.
 - Cost inventory: done, with the Railway trial (ends ~2026-11-07, $4.26 left). Azure credit balance only visible in the portal.
 - `135.232.225.216` stays in `ex03.md`/`dns-before-zoho.md` as a historical record; nothing points at it since 2026-10-25.

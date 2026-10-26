@@ -168,13 +168,13 @@ PaaS took away the server work, not the responsibility: a bad deploy, a bad sche
 
 ## Decisions
 
-*Drafted on 2026-10-25 from the plans and session records. My in-class write-ups of the Railway and email decisions are not in this repository.*
+*Written afterward, on 2026-10-25, with my agent's help from the plans and session records, then reviewed and reworded by me. My in-class write-ups are not in this repository.*
 
-**1. SQLite as the first database.** *Alternatives:* PostgreSQL or MySQL from the start. *Choice:* SQLite. *Why:* the site is one small, read-mostly table set with one writer (me), it needs no server, the database is a single file that's easy to back up and copy to the VM with `scp`, and the first migration had to keep the same engine. *Cost:* it doesn't fit a PaaS where the disk isn't permanent, which is why the Railway move changed engines.
+**1. Starting with SQLite.** *Alternatives:* PostgreSQL or MySQL from the start. A database is where the site stores its data. SQLite is the simplest kind: the whole database is one file sitting next to the app, with no separate database program to install or manage. That suited my site because it's small, people mostly read it, and only I write to it. Backing it up or moving it is just copying a file, which is how it moved to the VM. The catch is that SQLite needs a disk that stays put, and that's what caused trouble later.
 
-**2. Moving to Railway with PostgreSQL.** *Alternatives:* keep running the Azure VM; move the app to Railway but keep SQLite on a Railway volume. *Choice:* Railway web service plus Railway PostgreSQL. *Why:* Railway handles the OS, nginx's job, TLS and restarts, which was most of the VM work; its PostgreSQL is a managed database the app reaches over Railway's network, and deploys come straight from GitHub. *Cost:* the trial is short (30 days or $5) and allows one custom domain, the SQL had to be rewritten and the data copied, and I depend on Railway's settings and logs to debug.
+**2. Moving to Railway with PostgreSQL.** *Alternatives:* keep running the Azure VM; move to Railway but keep SQLite. On the Azure VM I was running the whole computer myself: updating the operating system, configuring nginx (the program that hands web requests to my app), setting up HTTPS certificates, and restarting things when they crashed. Railway is a platform that does all of that for me: I push code to GitHub and Railway deploys it. But Railway's disk can be wiped when the app restarts, so a SQLite file there could disappear. So I switched to PostgreSQL, a database that runs as its own service, which Railway manages. The costs: I had to rewrite some database code and move my data over, the free trial is short (30 days or $5 of usage) and allows only one custom domain, and when something breaks I can only see what Railway's dashboard and logs show me.
 
-**3. Managed email (Zoho) instead of a self-hosted mail server.** *Alternatives:* run Postfix/Dovecot on the VM; Google Workspace or another paid host. *Choice:* Zoho Mail's free plan. *Why:* running my own mail server means port 25 (which cloud providers often block), spam filtering, my IP's reputation, TLS, and DKIM signing, and a mistake means lost or rejected mail. Zoho does all of that; I only publish MX, SPF, DKIM and DMARC in Cloudflare. *Cost:* I depend on Zoho's free-plan limits, and messages can still land in Junk (both of my outgoing tests did).
+**3. Using Zoho for email instead of running my own.** *Alternatives:* run my own mail server (Postfix/Dovecot) on the VM; a paid host such as Google Workspace. Email is hard to get right. Cloud providers often block port 25, the port mail servers use. I'd have to filter spam myself. Providers like Gmail and Microsoft judge whether a sending server looks trustworthy, and a new server usually doesn't. One mistake and mail bounces or vanishes. Zoho handles all of that for free. My only job was adding a few DNS records in Cloudflare: MX (so mail for my domain goes to Zoho), SPF (which servers may send as my domain), DKIM (the key that proves Zoho's signature on my mail), and DMARC (what receivers should do when those checks fail). The cost is depending on Zoho's free-plan limits, and my test messages still landed in Junk.
 
 ## Investigated failures
 
@@ -201,9 +201,21 @@ Each has the symptom, checks, diagnosis, repair and the repeated check.
 
 ## Reflection
 
-*Draft written with my agent on 2026-10-25 for me to edit.*
+*Written 2026-10-25, after the work.*
 
-I understand much better that "it works" has layers: DNS can point to the right place while TLS fails, the app can be up while the database isn't, and a page can return 200 while showing the wrong data, which is why the old fallback that showed demo projects with a 200 was a problem. Moving from the VM to Railway showed me which jobs a platform takes over (OS, web server, certificates, restarts) and which stay mine (code, data, secrets, DNS, cost). Next time I would record results as I go instead of reconstructing them, test the new target before moving the domain, and run the reboot test before deleting a server.
+**"It works" isn't one yes-or-no answer.** Loading my site takes a chain of steps, and any link can break while the others look fine:
+
+- **DNS vs. TLS.** DNS is the internet's phone book: it turns `chelseahuang.me` into the address of my server. TLS is the certificate behind the padlock and "https". DNS can send visitors to the right server while the certificate is broken, so the browser shows a warning instead of my site.
+- **App vs. database.** The app serving pages can be running fine while the database it pulls content from is down or unreachable.
+- **A 200 with the wrong data.** A 200 status means "everything's OK". My old code had a fallback: if it couldn't reach the database, it quietly showed sample demo projects and still sent 200. To me, and to any automated check, the site looked healthy while showing fake content. That's worse than an obvious error, because it hides the real problem. Now it shows "Projects temporarily unavailable" with a 503.
+
+**What a platform does for me vs. what's still my job.** On the VM I handled everything. Railway took over the operating system, the web server, the certificates, and restarting the app after crashes. I still own my code, my data, my secrets (the passwords and keys the app uses), my DNS settings, and keeping an eye on cost.
+
+**What I'd do differently next time.**
+
+- Write down results as I go. This time I had to piece together what happened afterward.
+- Test the new home before pointing my domain at it, so visitors never land on a broken site during the switch.
+- Do a reboot test before deleting the old server: restart it, confirm everything comes back on its own, and only then destroy the fallback.
 
 ## Services, costs and cleanup
 
