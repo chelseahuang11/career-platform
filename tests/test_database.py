@@ -5,22 +5,15 @@ import psycopg
 from career_platform.config import database_url
 from career_platform.database import init_db
 
-DEMO_TITLES = {
-    "Investment Screening Dashboard",
-    "Portfolio Strategy Case Study",
-    "Data Storytelling Project",
-}
-
-
 def _project_titles() -> set[str]:
     with psycopg.connect(database_url()) as connection:
         return {row[0] for row in connection.execute("SELECT title FROM projects")}
 
 
-def test_init_db_seeds_demo_projects_into_empty_database(empty_database) -> None:
+def test_init_db_leaves_an_empty_projects_table_empty(empty_database) -> None:
     init_db()
 
-    assert _project_titles() == DEMO_TITLES
+    assert _project_titles() == set()
 
 
 def test_init_db_does_not_add_demo_projects_next_to_real_ones(empty_database) -> None:
@@ -54,4 +47,4 @@ def test_init_db_is_safe_when_several_processes_start_together(empty_database) -
         for result in [pool.submit(init_db) for _ in range(4)]:
             result.result()
 
-    assert _project_titles() == DEMO_TITLES
+    assert _project_titles() == set()

@@ -40,27 +40,30 @@ app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="stat
 logger = logging.getLogger(__name__)
 
 
-def load_fallback() -> tuple[Profile, list[Project]]:
+DATABASE_ERRORS = (OSError, psycopg.Error, ValueError)
+
+
+def load_fallback_profile() -> Profile:
+    """The profile only. Projects are never faked when the database is down."""
     import json
 
     fallback = json.loads(fallback_path().read_text(encoding="utf-8"))
-    profile = Profile(**fallback["profile"])
-    projects = [Project(**project) for project in fallback["projects"]]
-    return profile, projects
+    return Profile(**fallback["profile"])
 
 
-def load_public_content() -> tuple[Profile, list[Project]]:
+def load_public_content() -> tuple[Profile, list[Project] | None]:
+    """Return the profile and projects; projects is None when the database cannot be read."""
     try:
         return get_profile(), get_projects()
-    except (OSError, psycopg.Error, ValueError):
-        logger.exception("Database unavailable; serving the public profile fallback")
-        return load_fallback()
+    except DATABASE_ERRORS:
+        logger.exception("Database unavailable; showing the profile without projects")
+        return load_fallback_profile(), None
 
 
 try:
     init_db()
-except (OSError, psycopg.Error, ValueError):
-    logger.exception("Database initialization failed; the public fallback remains available")
+except DATABASE_ERRORS:
+    logger.exception("Database initialization failed; pages will retry the database on each request")
 
 
 @app.get("/health")
@@ -71,6 +74,7 @@ def healthcheck() -> dict[str, str]:
 @app.get("/")
 async def home(request: Request):
     profile, projects = load_public_content()
+    # 503 tells browsers, monitors and Railway that the page is incomplete.
     return templates.TemplateResponse(
         request,
         "index.html",
@@ -78,6 +82,7 @@ async def home(request: Request):
             "profile": profile,
             "projects": projects,
         },
+        status_code=200 if projects is not None else 503,
     )
 
 
@@ -104,8 +109,9 @@ async def resume(request: Request):
         "resume.html",
         {
             "profile": profile,
-            "projects": projects,
+            "projects": projects or [],
         },
+        status_code=200 if projects is not None else 503,
     )
     response.headers["Content-Disposition"] = 'attachment; filename="resume.html"'
     return response

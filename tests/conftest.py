@@ -27,7 +27,7 @@ def _drop_tables() -> None:
 
 @pytest.fixture
 def empty_database():
-    """Start the test with no tables; afterwards put the demo data back for test_app.py."""
+    """Start the test with no tables; afterwards recreate them empty for test_app.py."""
     from career_platform.database import init_db
 
     _drop_tables()

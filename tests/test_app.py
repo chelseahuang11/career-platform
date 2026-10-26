@@ -1,9 +1,26 @@
+import os
+
+import psycopg
+import pytest
 from fastapi.testclient import TestClient
 
 from career_platform.main import app
 
 
 client = TestClient(app)
+SAMPLE_TITLE = "Test Project From The Database"
+
+
+@pytest.fixture(autouse=True)
+def one_project_in_the_database():
+    """The app no longer seeds demo projects, so each test puts in one known row."""
+    with psycopg.connect(os.environ["DATABASE_URL"]) as connection:
+        connection.execute("DELETE FROM projects")
+        connection.execute(
+            "INSERT INTO projects (title, summary, technologies, link) VALUES (%s, %s, %s, %s)",
+            (SAMPLE_TITLE, "Course, 2026. Built a thing.", "Python", None),
+        )
+    yield
 
 
 def test_healthcheck() -> None:
@@ -15,7 +32,7 @@ def test_healthcheck() -> None:
 def test_homepage_renders_database_projects() -> None:
     response = client.get("/")
     assert response.status_code == 200
-    assert "Investment Screening Dashboard" in response.text
+    assert SAMPLE_TITLE in response.text
 
 
 def test_resume_serves_the_pdf_in_the_browser() -> None:
@@ -31,7 +48,7 @@ def test_resume_falls_back_to_html_without_the_pdf(monkeypatch, tmp_path) -> Non
     response = client.get("/resume")
     assert response.status_code == 200
     assert "attachment; filename=\"resume.html\"" == response.headers["content-disposition"]
-    assert "Portfolio Strategy Case Study" in response.text
+    assert SAMPLE_TITLE in response.text
 
 
 def test_privacy_page_describes_analytics_and_is_linked_from_the_footer() -> None:
@@ -87,18 +104,52 @@ def test_homepage_puts_the_site_project_last(monkeypatch) -> None:
     assert "Tracked <strong>9</strong> indicators." in text
 
 
-def test_homepage_uses_the_fallback_when_the_database_is_unreachable(monkeypatch, caplog) -> None:
+DEMO_TITLES = ("Investment Screening Dashboard", "Portfolio Strategy Case Study", "Data Storytelling Project")
+
+
+def _assert_projects_unavailable(response) -> None:
+    assert response.status_code == 503
+    assert "Chelsea Huang" in response.text
+    assert "Projects temporarily unavailable" in response.text
+    assert not any(title in response.text for title in DEMO_TITLES)
+
+
+def test_homepage_returns_503_without_projects_when_the_database_is_unreachable(monkeypatch, caplog) -> None:
     # Nothing listens on port 1, so the connection is refused straight away.
     monkeypatch.setenv("DATABASE_URL", "postgresql://nobody@127.0.0.1:1/missing_test")
-    response = client.get("/")
-    assert response.status_code == 200
-    assert "Investment Screening Dashboard" in response.text
+    _assert_projects_unavailable(client.get("/"))
     assert "Database unavailable" in caplog.text
 
 
-def test_homepage_uses_the_fallback_when_database_url_is_not_set(monkeypatch, caplog) -> None:
+def test_homepage_returns_503_when_database_url_is_not_set(monkeypatch, caplog) -> None:
     monkeypatch.delenv("DATABASE_URL")
+    _assert_projects_unavailable(client.get("/"))
+    assert "Database unavailable" in caplog.text
+
+
+def test_homepage_recovers_without_a_restart_when_the_database_returns(monkeypatch) -> None:
+    good_url = os.environ["DATABASE_URL"]
+    monkeypatch.setenv("DATABASE_URL", "postgresql://nobody@127.0.0.1:1/missing_test")
+    _assert_projects_unavailable(client.get("/"))
+
+    monkeypatch.setenv("DATABASE_URL", good_url)
     response = client.get("/")
     assert response.status_code == 200
-    assert "Investment Screening Dashboard" in response.text
-    assert "Database unavailable" in caplog.text
+    assert "Projects temporarily unavailable" not in response.text
+    assert SAMPLE_TITLE in response.text
+
+
+def test_homepage_says_so_when_the_projects_table_is_empty(monkeypatch) -> None:
+    monkeypatch.setattr("career_platform.main.get_projects", lambda: [])
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "No projects are listed yet" in response.text
+    assert not any(title in response.text for title in DEMO_TITLES)
+
+
+def test_homepage_shows_education_and_experience() -> None:
+    text = client.get("/").text
+    assert "Education" in text
+    assert "Loyola Marymount University" in text
+    assert "Experience" in text
+    assert "Protiviti" in text

@@ -75,6 +75,53 @@
   </div>
 </section>
 
+<section id="education" class="section alt">
+  <div class="container">
+    <div class="section-heading">
+      <p class="eyebrow">Education</p>
+      <h3>Loyola Marymount University</h3>
+    </div>
+    <article class="project-card">
+      <h4>Bachelor of Business Administration, Finance and Information Systems &amp; Business Analytics</h4>
+      <p class="project-meta">Los Angeles, CA · Expected December 2026</p>
+      <p class="project-result">Beta Gamma Sigma Honor Society, LMU Arrupe Scholar, Xavier Scholar, Dean’s List. GPA <strong>3.88</strong>.</p>
+      <div class="tags">
+        <span>Networking &amp; Cloud Computing</span>
+        <span>Database Management Systems</span>
+        <span>Developing Business Applications Using SQL</span>
+        <span>Valuation and Financial Statement Analysis</span>
+        <span>Mergers and Acquisitions</span>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section id="experience" class="section">
+  <div class="container">
+    <div class="section-heading">
+      <p class="eyebrow">Experience</p>
+      <h3>Where I’ve worked</h3>
+    </div>
+    <div class="project-grid">
+      <article class="project-card">
+        <h4>Protiviti</h4>
+        <p class="project-meta">Internal Audit and Financial Advisory Intern, Technology · May 2026 – July 2026</p>
+        <p class="project-result">Tested IT general controls for two publicly traded clients, with about 86% first-pass accuracy on 70 pieces of audit evidence.</p>
+      </article>
+      <article class="project-card">
+        <h4>AfterQuery</h4>
+        <p class="project-meta">Financial Analyst · May 2025 – July 2025</p>
+        <p class="project-result">Analyzed 20+ Fortune 500 10-K filings to identify growth drivers and risk factors for investment due diligence.</p>
+      </article>
+      <article class="project-card">
+        <h4>ROOF Los Angeles</h4>
+        <p class="project-meta">Real Estate Project Intern · June 2024 – February 2026</p>
+        <p class="project-result">Estimated valuations and rent pricing from comparable sale and rental data for up to 20 properties.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
 <section id="projects" class="section alt">
   <div class="container">
     <div class="section-heading">
@@ -82,6 +129,12 @@
       <h3>Selected work</h3>
     </div>
 
+    {% if projects is none %}
+    {# The database could not be read; the response is a 503. No sample projects stand in. #}
+    <p class="lead notice" role="status">Projects temporarily unavailable. Please refresh in a minute.</p>
+    {% elif not projects %}
+    <p class="lead">No projects are listed yet.</p>
+    {% else %}
     <div class="project-grid">
       {# Finance and analytics work leads; the project about this website goes last. #}
       {% for project in projects if '(this site)' not in project.title %}
@@ -91,6 +144,7 @@
       {{ project_card(project) }}
       {% endfor %}
     </div>
+    {% endif %}
   </div>
 </section>
 

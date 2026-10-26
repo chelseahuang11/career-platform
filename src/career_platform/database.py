@@ -55,44 +55,15 @@ def init_db() -> None:
             (
                 1,
                 "Chelsea Huang",
-                "Student | Finance, Investing, and Data Analysis",
+                "Finance and Information Systems & Business Analytics Student | Loyola Marymount University, Dec 2026",
                 "Los Angeles, CA",
-                "chelseahuang11@gmail.com",
-                "https://www.linkedin.com/in/chelseahuang",
+                "chuang30@lion.lmu.edu",
+                "https://www.linkedin.com/in/chelsea-huang8",
                 "https://github.com/chelseahuang11",
             ),
         )
 
-        # Demo projects only fill an empty table, so they never reappear next to real ones.
-        has_projects = connection.execute("SELECT 1 FROM projects LIMIT 1").fetchone()
-        for project in [] if has_projects else [
-            (
-                "Investment Screening Dashboard",
-                "Built a dashboard to evaluate public market opportunities using structured financial metrics and scenario comparisons.",
-                "Python, SQLite, Jinja, FastAPI",
-                "https://example.com/project/investment-screening",
-            ),
-            (
-                "Portfolio Strategy Case Study",
-                "Created a compact investment memo that compared risk-adjusted return assumptions across multiple sectors and allocation scenarios.",
-                "Excel, Analysis, Research",
-                "https://example.com/project/portfolio-strategy",
-            ),
-            (
-                "Data Storytelling Project",
-                "Used a structured dataset to present key business insights with visual summaries and concise narrative explanations.",
-                "SQL, Python, Data Visualization",
-                "https://example.com/project/data-storytelling",
-            ),
-        ]:
-            connection.execute(
-                """
-                INSERT INTO projects (title, summary, technologies, link)
-                VALUES (%s, %s, %s, %s)
-                ON CONFLICT (title) DO NOTHING
-                """,
-                project,
-            )
+        # No demo projects: an empty table stays empty and the page says so.
 
 
 def get_profile() -> Profile:

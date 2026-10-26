@@ -85,4 +85,4 @@ def test_copy_with_a_missing_file_changes_nothing(empty_database, tmp_path) -> N
         copy(missing)
 
     assert not missing.exists()
-    assert len(get_projects()) == 3
+    assert get_projects() == []
