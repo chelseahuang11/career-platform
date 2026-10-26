@@ -70,14 +70,14 @@ uv run --env-file .env uvicorn career_platform.main:app --app-dir src --reload
 
 ## Update the live site
 
-Railway deploys the `main` branch of this repository automatically (Railway's GitHub app creates a deployment for every push; see `gh api repos/chelseahuang11/career-platform/deployments`). The start command is in [`Procfile`](Procfile).
+Railway deploys the `main` branch of this repository automatically: every deployment in `railway deployment list --json` shows repo `chelseahuang11/career-platform`, branch `main`, and the pushed commit (checked 2026-10-25). The service is `career-platform` in project `imaginative-recreation`, environment `production`, region `iad`; its only custom variable is `DATABASE_URL` (value not displayed here). The start command is in [`Procfile`](Procfile).
 
 1. Make the change on a branch or locally, and review `git diff`.
 2. Run `uv run --env-file .env pytest -q` and look at the page locally.
 3. Commit and `git push origin main`.
 4. Wait for Railway's deployment to succeed, then check the domain.
 
-**The reviewed change for Project 1** (2026-10-25): commit [`d67a3db`](https://github.com/chelseahuang11/career-platform/commit/d67a3db) "Return 503 without sample projects when the database fails" (also adds Education and Experience). Reviewed with `git diff`, 22 tests passed, and the stop/start check above passed locally before the commit. Pushed 19:00 PDT → Railway deployment `7322403277` (GitHub deployment record, environment `imaginative-recreation / production`) went `in_progress` 02:00:06 UTC and `success` 02:01:15 UTC → at 19:01:21 PDT `https://chelseahuang.me/` returned 200 with the new `Education` and `Experience` sections, all 4 projects, and no demo titles. Railway's internal deployment ID is **unverified** (the Railway CLI login had expired).
+**The reviewed change for Project 1** (2026-10-25): commit [`d67a3db`](https://github.com/chelseahuang11/career-platform/commit/d67a3db) "Return 503 without sample projects when the database fails" (also adds Education and Experience). Reviewed with `git diff`, 22 tests passed, and the stop/start check above passed locally before the commit. Pushed 19:00 PDT → Railway deployment **`8d01a5c2-57c1-4383-a9d7-e3b3527f8547`** (`railway deployment list --json`: commit `d67a3db`, repo `chelseahuang11/career-platform`, branch `main`, created 02:00:02 UTC; GitHub's record of it is deployment `7322403277`, `success` at 02:01:15 UTC) → at 19:01:21 PDT `https://chelseahuang.me/` returned 200 with the new `Education` and `Experience` sections, all 4 projects, and no demo titles. That deployment now shows `REMOVED` because the next push (`33a7a1b`, deployment `527116a7…`, `SUCCESS`) replaced it, which is how Railway marks superseded deployments.
 
 ## Roll back a bad change
 
@@ -89,7 +89,7 @@ Railway deploys the `main` branch of this repository automatically (Railway's Gi
 
 **Data.** Visitors can't write anything; the data changes only when I change it (SQL or the copy tool). So:
 
-- Before any data change, take a backup. `pg_dump` isn't installed on my laptop, so it runs inside the Postgres container: `docker exec career_platform_db pg_dump "$RAILWAY_DATABASE_URL" -Fc > data/railway-YYYYMMDD.dump` (`data/` dumps stay out of Git; they hold my data).
+- Before any data change, take a backup. The Railway database has no public address now, so either turn on its TCP proxy for the backup (Postgres service → Settings → Networking) and use that address as `$RAILWAY_DATABASE_URL`, or run `pg_dump` inside Railway with `railway ssh -s Postgres`. From the laptop, `pg_dump` isn't installed, so it runs inside the local Postgres container: `docker exec career_platform_db pg_dump "$RAILWAY_DATABASE_URL" -Fc > data/railway-YYYYMMDD.dump` (`data/` dumps stay out of Git; they hold my data).
 - To undo: `docker exec -i career_platform_db pg_restore --clean --if-exists -d "$RAILWAY_DATABASE_URL" < data/railway-YYYYMMDD.dump`, then refresh the page. No app restart is needed, because every request reads the database. Railway's own database backups, if enabled on the plan, are a second option.
 - If only the schema change was bad, revert the code first, then restore the dump, so the code and tables match.
 
@@ -191,7 +191,7 @@ Each has the symptom, checks, diagnosis, repair and the repeated check.
 ## Remaining limitations
 
 - **Controlled VM restart unverified**, and the VM is deleted (2026-10-13), although Project 1 asked to keep it until the instructor's cleanup directions.
-- **Direct Railway database comparison** from the laptop failed on 2026-10-25 (connection closed by the public proxy); the row-level comparison is from the 2026-10-08 copy. Railway's internal deployment ID and its Settings → Source page were not re-checked (CLI login expired).
+- **Direct Railway database comparison on 2026-10-25: not run.** The Postgres service no longer has a public TCP proxy (`DATABASE_PUBLIC_URL` has an empty host and port), so the laptop can't reach it, which also explains the earlier `server closed the connection`. The database is reachable only on Railway's private network. The row-level comparison is the copy tool's check from 2026-10-08, plus the 2026-10-25 rendered-page comparison.
 - **Railway trial end date: unverified.** It ends after 30 days or $5 of usage, whichever comes first. I need to read it from Railway → Account → Usage and record it under costs. The site has to move to AWS before then.
 - The domain was moved to Railway before the Railway URL was tested (about 7 minutes of no working site).
 - Education and Experience live in the template, not the database, so changing them needs a deploy.
@@ -211,7 +211,7 @@ Checked 2026-10-25.
 
 | Service | What it runs | Plan / cost | Expires or renews | Cleanup |
 |---|---|---|---|---|
-| Railway | Web service + PostgreSQL (`imaginative-recreation / production`) | Free trial: $5 credit or 30 days | **Unverified**: read from Railway → Usage | Migrate to AWS after the midterm and before the trial ends; then delete the project (`pg_dump` first) |
+| Railway | Web service `career-platform` + `Postgres` (image `postgres-ssl:18`, volume 121 MB of 500 MB), project `imaginative-recreation`, region `iad` | Free trial: $5 credit or 30 days. Usage page shows the period from **2026-10-08** | Ends 30 days after the trial started or when $5 is used. If it started 2026-10-08, by about **2026-11-07**. Exact date and credit left: **unverified** | Migrate to AWS after the midterm and before the trial ends; then delete the project (`pg_dump` first) |
 | Azure for Students | Left in `rg-career-platform`: static public IP `135.232.225.216` (Standard, **unattached**, still billed against the credit), NSG, VNet. VM, OS disk and NIC deleted 2026-10-13 | Student credit. Usage API shows $0.00 pretax (charged to credit); balance only visible in the portal | Credit balance and end date: check in the portal | When the instructor says: `az group delete -n rg-career-platform --subscription "Azure for Students"`. Nothing points at the IP since 2026-10-25 |
 | Namecheap | Domain `chelseahuang.me` | Registration cost not recorded here | Expires **2027-10-01** | Decide on renewal before then |
 | Cloudflare | Authoritative DNS, `www` redirect, Universal SSL for `www` | Free | — | Keep while the domain is used |

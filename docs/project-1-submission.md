@@ -29,7 +29,7 @@ Every link below is a file, section or commit in this repository. Items marked *
 - Source/target comparison and cutover results: Railway plan, Task 3 results (row comparison, 2026-10-08) and "Results recorded afterward" (cutover timeline, rendered-page comparison 2026-10-25: 4 of 4 projects and every profile field match).
 - Rollback for code and data: README [Roll back a bad change](../README.md#roll-back-a-bad-change).
 - Azure vs Railway responsibilities: README [Who manages what](../README.md#migration-to-railway-and-postgresql).
-- **Unverified:** a direct row comparison with Railway's database on 2026-10-25. The public proxy closed the connection; see README [Remaining limitations](../README.md#remaining-limitations).
+- **Not run:** a direct row comparison with Railway's database on 2026-10-25. The database has no public proxy any more, so it is reachable only inside Railway; see README [Remaining limitations](../README.md#remaining-limitations).
 
 ## 4. Azure HTTP/restart evidence and final DNS/HTTPS
 
@@ -43,10 +43,9 @@ Every link below is a file, section or commit in this repository. Items marked *
 ## 5. Reviewed commit, its Railway deployment, and the live change
 
 - Commit [`d67a3db`](https://github.com/chelseahuang11/career-platform/commit/d67a3db): 503 without sample projects on database failure, recovery without restart, empty-table message, plus Education and Experience sections.
-- Review, tests and the local stop/start check; Railway deployment `7322403277` (`success` 02:01:15 UTC); live check at 19:01 on 2026-10-25: README [Update the live site](../README.md#update-the-live-site) and [What the site does](../README.md#what-the-site-does).
-- Railway deploys from GitHub `main`: every push since 2026-10-08 has a `railway-app[bot]` deployment (`gh api repos/chelseahuang11/career-platform/deployments`).
+- Review, tests and the local stop/start check; Railway deployment `8d01a5c2-57c1-4383-a9d7-e3b3527f8547` built from `d67a3db` on `main` (GitHub record `7322403277`, `success` 02:01:15 UTC); live check at 19:01 on 2026-10-25: README [Update the live site](../README.md#update-the-live-site) and [What the site does](../README.md#what-the-site-does).
+- Railway deploys from GitHub `main`: `railway deployment list --json` shows repo `chelseahuang11/career-platform`, branch `main` and the commit for each deployment (2026-10-25).
 - Recovery explanation: README [Roll back a bad change](../README.md#roll-back-a-bad-change).
-- **Unverified:** Railway's internal deployment ID and the Settings → Source page, because the Railway CLI login had expired.
 
 ## 6. Zoho email: send, receive, reply, DNS authentication
 

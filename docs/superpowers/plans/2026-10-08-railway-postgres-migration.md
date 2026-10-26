@@ -916,7 +916,8 @@ Tasks 4 and 5 were done on 2026-10-08 but their results were never written here.
 
 - `https://chelseahuang.me/` → `200`, served by `railway-hikari`; `/health` → `{"status":"ok"}`; `http://` → `301` to `https://`. Certificate `CN=chelseahuang.me`, Let's Encrypt YR2, valid to 2027-01-06, `Verify return code: 0 (ok)`. Details: [dns-https-final.md](../../evidence/dns-https-final.md).
 - Rendered-page comparison, source vs target: every field of the SQLite source (`data/career_platform.db`, copied from the VM on 2026-10-08) was found on the live page: profile name, title (both parts), location, email, LinkedIn, GitHub, and for projects 4–7 the title, summary, technologies and link. 4 of 4 projects, 0 missing.
-- A direct row comparison with Railway's database from the laptop was **not possible on 2026-10-25**: the public proxy address in `.env` closed the connection (`server closed the connection unexpectedly`), and the Railway CLI login had expired. The 2026-10-08 copy tool's own comparison (identical rows, `next id: 8`) is the row-level evidence.
+- A direct row comparison with Railway's database from the laptop was **not possible on 2026-10-25**: the Postgres service no longer has a public TCP proxy (`railway variables -s Postgres`: `DATABASE_PUBLIC_URL` has an empty host and port), so the old address in `.env` closed the connection. The 2026-10-08 copy tool's own comparison (identical rows, `next id: 8`) is the row-level evidence.
+- `railway deployment list --json` (2026-10-25): every deployment is built from `chelseahuang11/career-platform`, branch `main`. The web service's only custom variable is `DATABASE_URL`.
 
 **Undo Task 5 (Chelsea, Cloudflare):** put back the records written down in step 5.1. The VM still has its site, its SQLite file and a certificate valid until 2027-01-04, so it answers again as soon as DNS points at it.
 
