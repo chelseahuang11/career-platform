@@ -221,3 +221,6 @@ __marimo__/
 # Local CLI caches
 .cloudflare/
 .impeccable/
+
+# Database dumps hold personal data
+data/*.dump

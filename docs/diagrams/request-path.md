@@ -47,7 +47,7 @@ sequenceDiagram
 
 Details left out of the pictures, worth saying out loud:
 
-- Typing `chelseahuang.me` first tries `http://` on port 80. The site redirects to `https://` (expected on Railway, not yet checked).
+- Typing `chelseahuang.me` first tries `http://` on port 80. Railway answers `301` to `https://` (checked 2026-10-25).
 - DNS uses UDP port 53. Your resolver asks Cloudflare, which holds the record pointing to Railway.
 - Your home router swaps your private IP for your home's public IP (NAT), and maps the reply back.
 - The browser checks the certificate's name, dates and issuer before sending anything.
@@ -102,6 +102,53 @@ sequenceDiagram
 - The Railway box becomes **NSG** (80 and 443 open, 22 from the laptop only, nothing on 8000) → **nginx** (handles the :80 → 301 redirect, TLS ends here, Let's Encrypt certificate renewed by the certbot timer) → **uvicorn on 127.0.0.1:8000** (2 workers under systemd) → **SQLite file** on the VM's disk.
 - The database step is a file read inside the app process, not a network connection.
 
+## 4. Email path (Zoho, added 2026-10-25)
+
+Mail never touches Railway or the VM. Cloudflare only answers the DNS questions; Zoho stores and sends the mail.
+
+```mermaid
+flowchart LR
+  subgraph In["Someone emails chelsea@chelseahuang.me"]
+    O["Sender's mail server<br/>(e.g. Microsoft 365)"]
+  end
+  O -. "1. MX for chelseahuang.me?<br/>DNS, UDP 53" .-> D["Cloudflare DNS"]
+  D -. "mx.zoho.com (10), mx2 (20), mx3 (50)" .-> O
+  O -- "2. SMTP, TCP 25 (STARTTLS)" --> Z["Zoho mail servers<br/>mx.zoho.com"]
+  Z --> M[("My Zoho mailbox")]
+  U["Me in Zoho webmail<br/>(browser, HTTPS 443)"] --> M
+  M -- "3. Outgoing: Zoho signs with DKIM (selector zmail),<br/>sends over SMTP TCP 25" --> R["Receiver's mail server"]
+  R -. "4. Checks SPF (TXT @), DKIM (zmail._domainkey),<br/>DMARC (_dmarc) in Cloudflare DNS" .-> D
+```
+
+Evidence: [ex06.md](../evidence/ex06.md) (deliveries and authentication results), [zoho-header-check.md](../evidence/zoho-header-check.md), [dns-https-final.md](../evidence/dns-https-final.md) (records).
+
+## 5. Analytics path (GA4, added 2026-10-25)
+
+The page comes from Railway, but analytics data goes from the visitor's browser straight to Google. My server never sees it.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant B as Browser
+  participant E as Railway (app)
+  participant T as Google Tag Manager
+  participant G as Google Analytics 4
+
+  B->>E: GET / (HTTPS 443)
+  E-->>B: HTML with the gtag snippet (ID G-R24K9LD7H4)
+  B->>T: GET gtag.js (HTTPS 443)
+  Note over B: Consent Mode starts "denied".<br/>Visitor clicks Accept → analytics cookies allowed
+  B->>G: page_view (HTTPS 443, /g/collect)
+  B->>G: click with link_url, outbound=true (when a GitHub/LinkedIn/project link is clicked)
+  Note over G: Realtime report shows the events within seconds
+```
+
+Evidence: [ex06.md](../evidence/ex06.md) §3 and [ex06-ga4-events.png](../evidence/ex06-ga4-events.png).
+
+## 6. `www` (added 2026-10-25)
+
+`www.chelseahuang.me` is a **proxied** Cloudflare record. The browser connects to Cloudflare (HTTPS 443 with Cloudflare's certificate, or HTTP 80), and a Cloudflare redirect rule answers `301` to `https://chelseahuang.me/<same path>`. The browser then follows the bare-domain path in §1–2. Nothing behind `www` is ever contacted. See [dns-https-final.md](../evidence/dns-https-final.md).
+
 ## Sources in this repo
 
 | Claim | Source |
@@ -122,6 +169,6 @@ sequenceDiagram
 | Which roles the home router combines | Device label or admin page |
 | Who the resolver is | `ipconfig /all`; `nslookup chelseahuang.me` |
 | ISP and internet hops | `tracert chelseahuang.me` |
-| Railway's HTTP → HTTPS redirect | `curl -sI http://chelseahuang.me/` |
-| Railway certificate issuer and dates | `openssl s_client -connect chelseahuang.me:443 -servername chelseahuang.me \| openssl x509 -noout -subject -issuer -dates` |
+| ~~Railway's HTTP → HTTPS redirect~~ | Checked 2026-10-25: `301 -> https://chelseahuang.me/` ([dns-https-final.md](../evidence/dns-https-final.md)) |
+| ~~Railway certificate issuer and dates~~ | Checked 2026-10-25: Let's Encrypt YR2, 2026-10-08 to 2027-01-06 ([dns-https-final.md](../evidence/dns-https-final.md)) |
 | Railway internals (region, Postgres host and port) | Railway dashboard |

@@ -59,8 +59,8 @@
 | 1. The app talks to PostgreSQL | Done | 2026-10-08 | Commit `d27e381` on `railway-postgres`. 12 tests pass against `career_platform_test`. |
 | 2. The copy tool | Done | 2026-10-08 | Commit `9300e5f`. 16 tests pass. Rehearsed with the real file against the test database. |
 | 3. Copy the real data | Done | 2026-10-08 | The live `railway` database holds 1 profile and 4 projects (ids 4 to 7), next id 8. Nothing serves from it yet. |
-| 4. Deploy on Railway | Not started | | |
-| 5. Move the domain | Not started | | |
+| 4. Deploy on Railway | Done (recorded afterward) | 2026-10-08 | First successful deploy of the PostgreSQL code: commit `2c13fcf`, 15:28:40 PDT. See "Results recorded afterward" at the end of Task 5. |
+| 5. Move the domain | Done (recorded afterward) | 2026-10-08 | Root CNAME to Railway created 15:21:36 PDT, **7 minutes before** the first successful deploy. Checks recorded 2026-10-25. |
 
 ## File structure
 
@@ -892,6 +892,31 @@ uv run --env-file .env python -c "import os, psycopg; psycopg.connect(os.environ
   ```
 
   **Check:** the address is no longer the VM's; `http://` answers `301` to `https://`; each page has `RollEase Startup Project` and an `https://` stylesheet link, and not `Investment Screening Dashboard`; the certificate's start date is today. Then look in a browser, and once on phone mobile data.
+
+### Results recorded afterward (written 2026-10-25)
+
+Tasks 4 and 5 were done on 2026-10-08 but their results were never written here. This section was reconstructed on 2026-10-25 from Git, Railway's deployment records on GitHub (`gh api repos/chelseahuang11/career-platform/deployments`), Cloudflare's record timestamps, and the 2026-10-08 session log. Times are PDT.
+
+| Time (10-08) | Event | Source |
+|---|---|---|
+| 14:28–14:30 | Railway built the old `main` (`79c5fdb`, SQLite code, no start command): **failure** twice. Railpack could not find how to start the app. | GitHub deployment statuses; dashboard screenshot 15:12 |
+| 15:17 | Plan and `Procfile` start command committed (`3e87766`). | `git log` |
+| 15:21:36 | Root record changed to `CNAME chelseahuang.me → pfg32veb.up.railway.app`, DNS only; `_railway-verify` TXT added 15:22:31. | Cloudflare `created_on` |
+| ~15:25 | Railway's Let's Encrypt certificate for `chelseahuang.me` issued (`notBefore` 21:25 UTC, which Let's Encrypt backdates by 1 hour). | `openssl s_client` |
+| 15:27 | `main` pushed with the PostgreSQL code (`d27e381`, `9300e5f`, `3e87766`, `2c13fcf`). | session log |
+| 15:28:40 | Railway deployment of `2c13fcf`: **success**. | GitHub deployment `success` status |
+
+**What went differently from the plan.** Step 4.4 (test the Railway URL before moving the domain) was not done. The domain was moved while the web service still had only failed builds, so from 15:21 until about 15:28 `chelseahuang.me` reached Railway with no working app. The VM still held the site and its own certificate, so the undo (put the A record back) was available throughout, but it wasn't needed. In a later migration I would run step 4.4 against the `*.up.railway.app` URL first.
+
+**Variables.** The 15:12 screenshot of the web service's Variables tab shows `DATABASE_URL` set (value masked). It is not stored in the repo.
+
+**Data in the target.** Task 3 copied the VM's database (1 profile, 4 projects, ids 4–7) into Railway's `railway` database at about 14:50, with the copy tool comparing every row before saving. The current data differs from the seed data on purpose: on 2026-10-01 the demo projects (ids 1–3) and the old Gmail profile were replaced with my real profile and projects (ids 4–7) on the laptop, and that file was copied to the VM (see "Your profile replaces the demo data" in the [Azure migration plan](2026-09-24-azure-vm-migration.md)). Restoring seed data could not produce these rows, so finding them on Railway shows the current database moved.
+
+**Post-cutover checks (2026-10-25, 19:00–19:02 PDT).**
+
+- `https://chelseahuang.me/` → `200`, served by `railway-hikari`; `/health` → `{"status":"ok"}`; `http://` → `301` to `https://`. Certificate `CN=chelseahuang.me`, Let's Encrypt YR2, valid to 2027-01-06, `Verify return code: 0 (ok)`. Details: [dns-https-final.md](../../evidence/dns-https-final.md).
+- Rendered-page comparison, source vs target: every field of the SQLite source (`data/career_platform.db`, copied from the VM on 2026-10-08) was found on the live page: profile name, title (both parts), location, email, LinkedIn, GitHub, and for projects 4–7 the title, summary, technologies and link. 4 of 4 projects, 0 missing.
+- A direct row comparison with Railway's database from the laptop was **not possible on 2026-10-25**: the public proxy address in `.env` closed the connection (`server closed the connection unexpectedly`), and the Railway CLI login had expired. The 2026-10-08 copy tool's own comparison (identical rows, `next id: 8`) is the row-level evidence.
 
 **Undo Task 5 (Chelsea, Cloudflare):** put back the records written down in step 5.1. The VM still has its site, its SQLite file and a certificate valid until 2027-01-04, so it answers again as soon as DNS points at it.
 
