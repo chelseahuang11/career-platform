@@ -36,7 +36,7 @@ From the requirements audit on 2026-10-20. Each line: the gap, then the file or 
 - [x] No spec under `docs/superpowers/` → add the spec, or state in the README that the plan's Goal is the spec
 - [x] Plan-before-change timing not explained → README note: plan commit `3e87766` 15:17, root CNAME created 15:21 PDT
 - [x] No Azure-vs-Railway responsibility comparison → README migration section
-- [ ] No Railway trial end date or costs → README costs section
+- [x] No Railway trial end date or costs → README costs section
 
 ## 5. Reviewed change through Railway
 
@@ -65,7 +65,7 @@ From the requirements audit on 2026-10-20. Each line: the gap, then the file or 
 - [x] No Azure/Railway diagrams with email and analytics paths → diagrams in the README or a linked file
 - [x] Managed-vs-self-hosted email decision not in repo → README decisions section
 - [x] No reflection → README reflection section
-- [ ] No cost/service inventory with expiry and cleanup → README costs section
+- [x] No cost/service inventory with expiry and cleanup → README costs section
 - [x] No remaining-limitations list → README limitations section
 - [x] Failures not linked → README links `docs/evidence/ex03.md` and `docs/evidence/ex05.md` (marked as the lab simulation)
 
@@ -78,8 +78,7 @@ From the requirements audit on 2026-10-20. Each line: the gap, then the file or 
 ## Still open (2026-10-25)
 
 - Controlled VM restart: no record exists and the VM was deleted 2026-10-13 in class. Marked unverified in the README.
-- Railway trial end date and remaining credit: usage period starts 2026-10-08; exact end date and credit left still needed.
 - Direct row comparison with Railway's database: not run (no public proxy; reading production data from inside Railway needs Chelsea's go-ahead). Deployment ID and source branch: done 2026-10-25.
 - Decisions and Reflection in the README are drafts. Chelsea to review and edit them in her own words.
-- `No cost/service inventory`: table written; Railway dates and Azure credit balance still to fill in.
+- Cost inventory: done, with the Railway trial (ends ~2026-11-07, $4.26 left). Azure credit balance only visible in the portal.
 - `135.232.225.216` stays in `ex03.md`/`dns-before-zoho.md` as a historical record; nothing points at it since 2026-10-25.

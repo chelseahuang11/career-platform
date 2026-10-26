@@ -192,7 +192,7 @@ Each has the symptom, checks, diagnosis, repair and the repeated check.
 
 - **Controlled VM restart unverified**, and the VM is deleted (2026-10-13), although Project 1 asked to keep it until the instructor's cleanup directions.
 - **Direct Railway database comparison on 2026-10-25: not run.** The Postgres service no longer has a public TCP proxy (`DATABASE_PUBLIC_URL` has an empty host and port), so the laptop can't reach it, which also explains the earlier `server closed the connection`. The database is reachable only on Railway's private network. The row-level comparison is the copy tool's check from 2026-10-08, plus the 2026-10-25 rendered-page comparison.
-- **Railway trial end date: unverified.** It ends after 30 days or $5 of usage, whichever comes first. I need to read it from Railway → Account → Usage and record it under costs. The site has to move to AWS before then.
+- **Railway trial ends about 2026-11-07** ("13 days or $4.26 left" on 2026-10-25). The site has to move to AWS before then, or Railway stops it.
 - The domain was moved to Railway before the Railway URL was tested (about 7 minutes of no working site).
 - Education and Experience live in the template, not the database, so changing them needs a deploy.
 - Both outgoing test emails reached the Microsoft 365 mailbox but ended up in Junk. DMARC is `p=none` (report only).
@@ -211,7 +211,7 @@ Checked 2026-10-25.
 
 | Service | What it runs | Plan / cost | Expires or renews | Cleanup |
 |---|---|---|---|---|
-| Railway | Web service `career-platform` + `Postgres` (image `postgres-ssl:18`, volume 121 MB of 500 MB), project `imaginative-recreation`, region `iad` | Free trial: $5 credit or 30 days. Usage page shows the period from **2026-10-08** | Ends 30 days after the trial started or when $5 is used. If it started 2026-10-08, by about **2026-11-07**. Exact date and credit left: **unverified** | Migrate to AWS after the midterm and before the trial ends; then delete the project (`pg_dump` first) |
+| Railway | Web service `career-platform` + `Postgres` (image `postgres-ssl:18`, volume 121 MB of 500 MB), project `imaginative-recreation`, region `iad` | Trial plan: one-time $5.00 credit, 1 GB RAM, 2 vCPU, 1 GB disk. Usage 2026-10-08 to 10-26: **$0.74** (all `imaginative-recreation`); estimated month's cost $0.04 | Railway Usage page, 2026-10-25 19:16 PDT: **"13 days or $4.26 left"**, so the trial ends about **2026-11-07**, or sooner if the $4.26 runs out | Migrate to AWS after the midterm and before the trial ends; then delete the project (`pg_dump` first) |
 | Azure for Students | Left in `rg-career-platform`: static public IP `135.232.225.216` (Standard, **unattached**, still billed against the credit), NSG, VNet. VM, OS disk and NIC deleted 2026-10-13 | Student credit. Usage API shows $0.00 pretax (charged to credit); balance only visible in the portal | Credit balance and end date: check in the portal | When the instructor says: `az group delete -n rg-career-platform --subscription "Azure for Students"`. Nothing points at the IP since 2026-10-25 |
 | Namecheap | Domain `chelseahuang.me` | Registration cost not recorded here | Expires **2027-10-01** | Decide on renewal before then |
 | Cloudflare | Authoritative DNS, `www` redirect, Universal SSL for `www` | Free | — | Keep while the domain is used |
