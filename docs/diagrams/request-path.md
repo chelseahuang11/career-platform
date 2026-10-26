@@ -48,10 +48,10 @@ sequenceDiagram
 Details left out of the pictures, worth saying out loud:
 
 - Typing `chelseahuang.me` first tries `http://` on port 80. Railway answers `301` to `https://` (checked 2026-10-25).
-- DNS uses UDP port 53. Your resolver asks Cloudflare, which holds the record pointing to Railway.
-- Your home router swaps your private IP for your home's public IP (NAT), and maps the reply back.
+- DNS uses UDP port 53. My resolver asks Cloudflare, which holds the record pointing to Railway.
+- My home router swaps my laptop's private IP for my home's public IP (NAT), and maps the reply back.
 - The browser checks the certificate's name, dates and issuer before sending anything.
-- The GA4 script loads from Google, and analytics events go from the browser straight to Google, not through your server.
+- The GA4 script loads from Google, and analytics events go from the browser straight to Google, not through my server.
 
 ## 3. Azure VM with SQLite (earlier)
 

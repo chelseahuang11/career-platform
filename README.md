@@ -11,7 +11,7 @@ This README was assembled on 2026-10-25 with my coding agent from the repository
 ## Contents
 
 1. [What the site does](#what-the-site-does)
-2. [Run it on your laptop](#run-it-on-your-laptop)
+2. [Run it on my laptop](#run-it-on-my-laptop)
 3. [Update the live site](#update-the-live-site)
 4. [Roll back a bad change](#roll-back-a-bad-change)
 5. [Architecture](#architecture)
@@ -48,7 +48,7 @@ $ docker start career_platform_db
 
 The same cases are automated tests in `tests/test_app.py` (503 when unreachable, 503 when `DATABASE_URL` is missing, recovery without restart, empty table, no demo titles). `uv run --env-file .env pytest -q` → `22 passed` (2026-10-25).
 
-## Run it on your laptop
+## Run it on my laptop
 
 Needs [uv](https://docs.astral.sh/uv/), Python 3.12 and Docker Desktop.
 

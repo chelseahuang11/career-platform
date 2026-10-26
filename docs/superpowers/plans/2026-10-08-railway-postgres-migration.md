@@ -910,7 +910,7 @@ Tasks 4 and 5 were done on 2026-10-08 but their results were never written here.
 
 **Variables.** The 15:12 screenshot of the web service's Variables tab shows `DATABASE_URL` set (value masked). It is not stored in the repo.
 
-**Data in the target.** Task 3 copied the VM's database (1 profile, 4 projects, ids 4–7) into Railway's `railway` database at about 14:50, with the copy tool comparing every row before saving. The current data differs from the seed data on purpose: on 2026-10-01 the demo projects (ids 1–3) and the old Gmail profile were replaced with my real profile and projects (ids 4–7) on the laptop, and that file was copied to the VM (see "Your profile replaces the demo data" in the [Azure migration plan](2026-09-24-azure-vm-migration.md)). Restoring seed data could not produce these rows, so finding them on Railway shows the current database moved.
+**Data in the target.** Task 3 copied the VM's database (1 profile, 4 projects, ids 4–7) into Railway's `railway` database at about 14:50, with the copy tool comparing every row before saving. The current data differs from the seed data on purpose: on 2026-10-01 the demo projects (ids 1–3) and the old Gmail profile were replaced with my real profile and projects (ids 4–7) on the laptop, and that file was copied to the VM (see the 2026-10-01 section on replacing the demo data in the [Azure migration plan](2026-09-24-azure-vm-migration.md)). Restoring seed data could not produce these rows, so finding them on Railway shows the current database moved.
 
 **Post-cutover checks (2026-10-25, 19:00–19:02 PDT).**
 

@@ -25,7 +25,7 @@ Every link below is a file, section or commit in this repository. Items marked *
 - Plan committed before the change: [`3e87766`](https://github.com/chelseahuang11/career-platform/commit/3e87766) at 15:17 on 2026-10-08. The root CNAME was created at 15:21.
 - Dependency inventory (what Git moves, and what needs another method): Railway plan, top sections, and README [Migration](../README.md#migration-to-railway-and-postgresql).
 - PostgreSQL compatibility: [`d27e381`](https://github.com/chelseahuang11/career-platform/commit/d27e381) (SQL for PostgreSQL), [`9300e5f`](https://github.com/chelseahuang11/career-platform/commit/9300e5f) (copy tool that compares rows before committing).
-- Real change to the original data (demo rows replaced by my profile and projects 4–7): Azure plan, "Your profile replaces the demo data (2026-10-01)".
+- Real change to the original data (demo rows replaced by my profile and projects 4–7): the Azure migration plan's 2026-10-01 section on replacing the demo data with my profile.
 - Source/target comparison and cutover results: Railway plan, Task 3 results (row comparison, 2026-10-08) and "Results recorded afterward" (cutover timeline, rendered-page comparison 2026-10-25: 4 of 4 projects and every profile field match).
 - Rollback for code and data: README [Roll back a bad change](../README.md#roll-back-a-bad-change).
 - Azure vs Railway responsibilities: README [Who manages what](../README.md#migration-to-railway-and-postgresql).
