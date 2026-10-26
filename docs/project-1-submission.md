@@ -2,7 +2,7 @@
 
 - **Repository:** https://github.com/chelseahuang11/career-platform
 - **Live HTTPS site:** https://chelseahuang.me/
-- **Final commit SHA:** `8f17406f77a6858ca4e94ee5b67c696892616bab` (submitted in Brightspace). The only commit after it writes this SHA into this file and changes nothing else.
+- **Final commit SHA:** `3c93e739e92709a5b78de5d3e31ec2a3a195f4c7` (submitted in Brightspace). The only commit after it writes this SHA into this file and changes nothing else.
 
 Every link below is a file, section or commit in this repository. Items marked **Unverified** were not checked, and the reason is given. Observations are dated; times are Pacific unless marked UTC.
 
