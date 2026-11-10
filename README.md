@@ -109,6 +109,38 @@ All diagrams: [docs/diagrams/request-path.md](docs/diagrams/request-path.md).
 
 PNG exports: `docs/diagrams/request-path-*.png`, `docs/diagrams/azure-request-path-*.png`.
 
+## AWS deployment
+
+Since November 2026 the site runs on AWS in Northern Virginia (`us-east-1a`): one EC2 t3.micro server for the app and one Single-AZ RDS PostgreSQL 18 database (db.t4g.micro) for the data. Plan with recorded results: [AWS migration plan](docs/superpowers/plans/2026-10-29-aws-migration.md). Exercise record: [ex07.md](docs/evidence/ex07.md).
+
+```mermaid
+flowchart LR
+  V[Visitor's browser] -- "DNS lookup, UDP 53" --> CF_DNS[Cloudflare DNS<br/>chelseahuang.me, aws.chelseahuang.me<br/>proxied records]
+  V -- "HTTPS 443<br/>(Cloudflare edge certificate)" --> CF[Cloudflare proxy]
+  subgraph AWS["AWS us-east-1, default VPC"]
+    subgraph WEB_SG["Security group career-platform-web<br/>443 from Cloudflare ranges only, 22 from my IP only"]
+      EIP[Elastic IP] --> NGINX[nginx :443<br/>Cloudflare origin certificate]
+      NGINX -- "HTTP 127.0.0.1:8000" --> APP[uvicorn + FastAPI<br/>systemd, 2 workers]
+    end
+    subgraph DB_SG["Security group career-platform-db<br/>5432 from the web group only"]
+      RDS[(RDS PostgreSQL 18<br/>Single-AZ, not public,<br/>encrypted storage)]
+    end
+    APP -- "TCP 5432, TLS verify-full" --> RDS
+    RDS -. "automated daily backup, 1 day kept" .-> SNAP[(RDS backups)]
+  end
+  CF -- "HTTPS 443, SSL mode Full (strict)" --> EIP
+  ME[My laptop] -- "SSH 22, key only" --> EIP
+  ME -. "pg_dump export via SSH" .-> OD[(Local folder + OneDrive<br/>independent backups)]
+```
+
+HTTPS ends twice: at Cloudflare's edge (the browser's certificate) and at nginx (Cloudflare's origin certificate, checked because the SSL mode is Full (strict)). SSH is the only admin path. Railway no longer serves traffic: its trial ended before the cutover on 2026-11-10.
+
+- **Why this architecture:** I chose EC2 + RDS over EC2 with PostgreSQL on the same server so AWS runs the database's backups and patching. I accept about $14 a month more and an outage if the one availability zone fails (Multi-AZ would double the database price).
+- **Backups and restore:** RDS takes a daily automated backup (1 day kept, the most the Free plan allows). My own `pg_dump` exports go to a local folder and OneDrive monthly and after each content change. To restore: copy the dump to the server and run `pg_restore --no-owner` into an empty database (0.12 s on 2026-11-10). RPO 24 hours, RTO 2 hours.
+- **Tested:** on `aws.chelseahuang.me` before the cutover, then on the live domain: HTTPS through Cloudflare with Full (strict), all pages 200, data matches the backup, the app comes back after a reboot, and the server refuses connections that don't come from Cloudflare. Details: [ex07.md](docs/evidence/ex07.md).
+- **Cost:** about $25.86 a month (EC2 $7.59, RDS $11.68, Elastic IP $3.65, storage $2.94), paid from the class account's credits.
+- **Next:** disconnect Railway from GitHub, merge `aws-migration` into `main`, take the first export from RDS, and after the course (2026-12-17) decide whether to keep paying, move to a cheaper host, or delete it.
+
 ## Azure deployment (earlier)
 
 Plans with recorded results: [Azure VM migration](docs/superpowers/plans/2026-09-24-azure-vm-migration.md) (2026-09-24 to 10-01) and [Operate the VM](docs/superpowers/plans/2026-10-01-operate-the-vm.md) (2026-10-01). Exercise record: [ex03.md](docs/evidence/ex03.md).
