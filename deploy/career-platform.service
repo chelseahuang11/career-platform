@@ -1,0 +1,16 @@
+[Unit]
+Description=career-platform (FastAPI on uvicorn)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=career
+Group=career
+WorkingDirectory=/opt/career-platform
+EnvironmentFile=/etc/career-platform/env
+ExecStart=/opt/career-platform/.venv/bin/uvicorn career_platform.main:app --app-dir src --host 127.0.0.1 --port 8000 --workers 2 --proxy-headers --forwarded-allow-ips=127.0.0.1
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
