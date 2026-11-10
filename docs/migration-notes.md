@@ -4,7 +4,7 @@ Deviations from the [class AWS migration guide](https://github.com/LMU-ISBA/isba
 
 | Guide / plan step | What it says | What I did | Why |
 |---|---|---|---|
-| §1 Budget | Zero-spend budget from the account owner's console | Not set yet | To do in the owner's console |
+| §1 Budget | Zero-spend budget from the account owner's console | Created 2026-11-10 as the root user (Use a template → Zero spend budget) | Late: should have been set before creating anything. The IAM user can't create budgets or see bills, so it's done as root, as the guide says |
 | §7 RDS backups | 7 days of automated backups | 1 day | The Free plan refused 7 (`FreeTierRestrictionError`). Daily backups still meet my 24-hour RPO; my own `pg_dump` exports give the longer history |
 | §8 Image | Ubuntu Server 26.04 LTS | Ubuntu 24.04 LTS | My plan was written before the guide changed. 24.04 is supported to 2029; I installed the PostgreSQL 18 client from the PostgreSQL apt repository (`pg_restore` 18.6, same as Railway) |
 | §8 Storage | 20 GB gp3 | 8 GB gp3, encrypted | Enough for the OS, the app and a 5 KB database; costs less |
