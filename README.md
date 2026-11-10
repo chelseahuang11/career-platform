@@ -139,7 +139,7 @@ HTTPS ends twice: at Cloudflare's edge (the browser's certificate) and at nginx 
 - **Backups and restore:** RDS takes a daily automated backup (1 day kept, the most the Free plan allows). My own `pg_dump` exports go to a local folder and OneDrive monthly and after each content change. To restore: copy the dump to the server and run `pg_restore --no-owner` into an empty database (0.12 s on 2026-11-10). RPO 24 hours, RTO 2 hours.
 - **Tested:** on `aws.chelseahuang.me` before the cutover, then on the live domain: HTTPS through Cloudflare with Full (strict), all pages 200, data matches the backup, the app comes back after a reboot, and the server refuses connections that don't come from Cloudflare. Details: [ex07.md](docs/evidence/ex07.md).
 - **Cost:** about $25.86 a month (EC2 $7.59, RDS $11.68, Elastic IP $3.65, storage $2.94), paid from the class account's credits.
-- **Next:** disconnect Railway from GitHub, merge `aws-migration` into `main`, take the first export from RDS, and after the course (2026-12-17) decide whether to keep paying, move to a cheaper host, or delete it.
+- **Next:** find why credits drain faster than planned, and after the course (2026-12-17) decide whether to keep paying, move to a cheaper host, or delete it.
 
 ## Azure deployment (earlier)
 
